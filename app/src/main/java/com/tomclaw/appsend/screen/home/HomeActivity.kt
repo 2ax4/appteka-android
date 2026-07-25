@@ -9,6 +9,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.google.android.material.appbar.AppBarLayout
 import com.tomclaw.appsend.appComponent
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.screen.about.createAboutActivityIntent
@@ -157,10 +158,24 @@ class HomeActivity : AppCompatActivity(), HomePresenter.HomeRouter {
                     .setCustomAnimations(0, 0)
                     .replace(R.id.frame, fragment, "fragment$index")
                     .commitAllowingStateLoss()
+                resetAppBarLift()
             }
         }
         pendingFragmentRunnable = runnable
         handler.post(runnable)
+    }
+
+    /**
+     * The tabs share one app bar, so a tab left scrolled would hand the
+     * next one a lifted bar over content sitting at the top. The bar
+     * also caches the view it watches, and that view belongs to the
+     * outgoing fragment — re-setting the id drops the stale reference so
+     * the incoming list is found instead.
+     */
+    private fun resetAppBarLift() {
+        val appBar = findViewById<AppBarLayout>(R.id.app_bar_layout)
+        appBar.liftOnScrollTargetViewId = R.id.recycler
+        appBar.setLifted(false)
     }
 
     override fun onStart() {
