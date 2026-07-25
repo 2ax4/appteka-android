@@ -241,11 +241,23 @@
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3.ActionBar" />
 
-    <!-- AppBarLayout style to prevent status bar flicker during scroll -->
-    <style name="AppBarLayoutStyle" parent="Widget.Material3.AppBarLayout">
-        <item name="elevation">0dp</item>
-        <item name="android:stateListAnimator">@null</item>
-    </style>
+    <!--
+        Left to Widget.Material3.AppBarLayout on purpose.
+
+        This used to zero out elevation and null the state list animator
+        to stop the app bar flickering during scroll. That animator is
+        the lift itself: Material 3 separates a top app bar from its
+        content by swapping the container colour (surface ->
+        surfaceContainer), not by casting a shadow — the M3 style already
+        sets both outline shadow colours to transparent.
+
+        The flicker had a different cause. Every list here sits inside a
+        SwipeRefreshLayout, and the app bar cannot find a scrolling child
+        through it; the documented fix is liftOnScrollTargetViewId,
+        pointing the bar at the real scrolling view, which each layout
+        now does.
+    -->
+    <style name="AppBarLayoutStyle" parent="Widget.Material3.AppBarLayout" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3" />
 

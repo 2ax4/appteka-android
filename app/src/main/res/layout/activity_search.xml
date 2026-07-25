@@ -24,13 +24,13 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:liftOnScrollTargetViewId="@id/recycler">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/search_toolbar_background"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <androidx.appcompat.widget.AppCompatEditText
@@ -52,7 +52,6 @@
             android:id="@+id/selected_tags_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/search_toolbar_background"
             android:paddingStart="12dp"
             android:paddingTop="4dp"
             android:paddingEnd="12dp"
