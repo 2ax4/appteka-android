@@ -13,53 +13,64 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/search_toolbar_background"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/query_edit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:hint="@string/search_app"
-            android:imeOptions="flagNoFullscreen|actionSearch"
-            android:lines="1"
-            android:singleLine="true" />
-
-    </androidx.appcompat.widget.Toolbar>
-
-    <!-- Active tag filters. Scrolls sideways instead of wrapping so the
-         list below never jumps by a row height as tags are added. -->
-    <HorizontalScrollView
-        android:id="@+id/selected_tags_scroll"
+    <!--
+        The query field and the active tag filters are one surface, so
+        they share an app bar. Separation from the content below is the
+        app bar's own business in Material 3 — a gradient drawable faking
+        a drop shadow is a pre-Material habit, and the theme's
+        AppBarLayoutStyle governs elevation app-wide.
+    -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/search_toolbar_background"
-        android:paddingStart="12dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="8dp"
-        android:scrollbars="none"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:theme="@style/AppTheme.AppBarOverlay">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/selected_tags"
-            android:layout_width="wrap_content"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/search_toolbar_background"
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/query_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="@string/search_app"
+                android:imeOptions="flagNoFullscreen|actionSearch"
+                android:lines="1"
+                android:singleLine="true" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Active tag filters. Scrolls sideways instead of wrapping so
+             the list below never jumps by a row height as tags are
+             added. -->
+        <HorizontalScrollView
+            android:id="@+id/selected_tags_scroll"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:chipSpacingHorizontal="8dp"
-            app:singleLine="true" />
+            android:background="?attr/search_toolbar_background"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:scrollbars="none"
+            android:visibility="gone"
+            tools:visibility="visible">
 
-    </HorizontalScrollView>
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/selected_tags"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="8dp"
+                app:singleLine="true" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="7dp"
-        android:background="@drawable/shadow" />
+        </HorizontalScrollView>
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
