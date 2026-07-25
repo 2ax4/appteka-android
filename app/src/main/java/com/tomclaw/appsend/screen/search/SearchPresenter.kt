@@ -89,6 +89,13 @@ class SearchPresenterImpl(
             .debounce(DEBOUNCE_DELAY_MS, TimeUnit.MILLISECONDS, schedulers.mainThread())
             .distinctUntilChanged()
             .subscribe { text ->
+                // Restoring the field after a rotation fires the text
+                // watcher just like typing does, and an empty relay lets
+                // that first value through distinctUntilChanged. Acting
+                // on it would re-run the search we just restored, so
+                // compare against what we already hold: a change that
+                // changes nothing is not a change.
+                if (text == query) return@subscribe
                 query = text
                 onCriteriaChanged()
             }
