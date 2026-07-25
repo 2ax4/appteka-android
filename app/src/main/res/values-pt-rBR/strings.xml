@@ -307,6 +307,7 @@
     <string name="ai_note_pending">A IA está lendo a descrição…</string>
     <string name="ai_note_ask_action">Perguntar à IA</string>
     <string name="ai_review_error">Falha ao solicitar revisão da IA</string>
+    <string name="tags_block_title">Tags</string>
     <string name="security_scanning_short">Verificando</string>
     <string name="security_safe_short">Seguro</string>
     <string name="security_suspicious_short">Suspeito</string>

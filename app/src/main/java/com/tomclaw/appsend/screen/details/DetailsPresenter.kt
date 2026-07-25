@@ -108,6 +108,8 @@ interface DetailsPresenter : ItemListener {
 
         fun openStoreScreen()
 
+        fun openTagScreen(tag: String)
+
         fun openGooglePlay(packageName: String)
 
         fun startDownload(label: String, version: String, icon: String?, appId: String, url: String)
@@ -947,6 +949,10 @@ class DetailsPresenterImpl(
         ex.filterUnauthorizedErrors({ view?.showUnauthorizedError() }) {
             view?.showSnackbar(resourceProvider.aiReviewErrorText())
         }
+    }
+
+    override fun onTagClick(tag: String) {
+        router?.openTagScreen(tag)
     }
 
     private var aiPollingDisposable: Disposable? = null

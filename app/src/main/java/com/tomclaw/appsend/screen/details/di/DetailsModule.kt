@@ -55,6 +55,8 @@ import com.tomclaw.appsend.screen.details.adapter.security.SecurityItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.security.SecurityItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItemPresenter
+import com.tomclaw.appsend.screen.details.adapter.tags.TagsItemBlueprint
+import com.tomclaw.appsend.screen.details.adapter.tags.TagsItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.user_review.UserReviewItemBlueprint
@@ -246,6 +248,19 @@ class DetailsModule(
         presenter: DetailsPresenter,
         resourceProvider: DescriptionResourceProvider
     ) = DescriptionItemPresenter(presenter, resourceProvider)
+
+    @Provides
+    @IntoSet
+    @PerActivity
+    internal fun provideTagsItemBlueprint(
+        presenter: TagsItemPresenter
+    ): ItemBlueprint<*, *> = TagsItemBlueprint(presenter)
+
+    @Provides
+    @PerActivity
+    internal fun provideTagsItemPresenter(
+        listener: DetailsPresenter,
+    ) = TagsItemPresenter(listener)
 
     @Provides
     @IntoSet

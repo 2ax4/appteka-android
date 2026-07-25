@@ -36,6 +36,7 @@ import java.util.Locale
 @Module
 class SearchModule(
     private val context: Context,
+    private val tag: String?,
     private val state: Bundle?
 ) {
 
@@ -53,6 +54,7 @@ class SearchModule(
         appConverter,
         analytics,
         schedulers,
+        tag,
         state
     )
 

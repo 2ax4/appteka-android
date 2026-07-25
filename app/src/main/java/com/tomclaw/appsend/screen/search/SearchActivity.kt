@@ -13,6 +13,7 @@ import com.tomclaw.appsend.R
 import com.tomclaw.appsend.screen.search.di.SearchModule
 import com.tomclaw.appsend.util.ZipParcelable
 import com.tomclaw.appsend.util.getParcelableCompat
+import com.tomclaw.appsend.util.hide
 import javax.inject.Inject
 
 class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
@@ -26,6 +27,9 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
     @Inject
     lateinit var binder: ItemBinder
 
+    /** Non-null when the screen shows apps carrying a single tag. */
+    private val tag: String? by lazy { intent.getStringExtra(EXTRA_TAG) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -33,7 +37,7 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
             ?.getParcelableCompat(KEY_PRESENTER_STATE, ZipParcelable::class.java)
             ?.restore<Bundle>()
         appComponent
-            .searchComponent(SearchModule(context = this, presenterState))
+            .searchComponent(SearchModule(context = this, tag = tag, state = presenterState))
             .inject(activity = this)
 
         setContentView(R.layout.activity_search)
@@ -54,7 +58,14 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
             setDisplayShowHomeEnabled(true)
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(true)
-            title = getString(R.string.search_app)
+            title = tag
+                ?.let { getString(R.string.tag_search_title, it) }
+                ?: getString(R.string.search_app)
+        }
+        // The tag screen has a fixed query, so the input would be dead
+        // weight — the tag itself is the title instead.
+        if (tag != null) {
+            findViewById<View>(R.id.query_edit).hide()
         }
     }
 
@@ -70,6 +81,7 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
 
     override fun onResume() {
         super.onResume()
+        if (tag != null) return
         // Request focus on query edit text after resume
         findViewById<android.widget.EditText>(R.id.query_edit)?.requestFocus()
     }
@@ -105,8 +117,14 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
 
 }
 
-fun createSearchActivityIntent(context: Context): Intent =
+/**
+ * Opens search. Pass [tag] to list apps carrying that tag instead of
+ * searching by free text.
+ */
+fun createSearchActivityIntent(context: Context, tag: String? = null): Intent =
     Intent(context, SearchActivity::class.java)
+        .apply { tag?.let { putExtra(EXTRA_TAG, it) } }
 
+private const val EXTRA_TAG = "tag"
 private const val KEY_PRESENTER_STATE = "presenter_state"
 

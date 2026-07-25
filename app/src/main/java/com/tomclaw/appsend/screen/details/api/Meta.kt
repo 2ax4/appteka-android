@@ -25,8 +25,6 @@ data class Meta(
     val sourceUrl: String?,
     @SerializedName("screenshots")
     val screenshots: List<Screenshot>?,
-    @SerializedName("similar")
-    val similar: Boolean?,
     @SerializedName("time")
     val time: Long?,
     @SerializedName("author")
@@ -37,6 +35,8 @@ data class Meta(
     val rating: Float?,
     @SerializedName("scores")
     val scores: Scores?,
+    @SerializedName("ai_tags")
+    val aiTags: List<String>? = null,
     @SerializedName("ai_note")
     val aiNote: String? = null,
     @SerializedName("ai_short_description")

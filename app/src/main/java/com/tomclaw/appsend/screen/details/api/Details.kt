@@ -3,6 +3,7 @@ package com.tomclaw.appsend.screen.details.api
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import com.tomclaw.appsend.core.permissions.Capability
+import com.tomclaw.appsend.dto.AppEntity
 import com.tomclaw.appsend.util.GsonModel
 import kotlinx.parcelize.Parcelize
 
@@ -43,6 +44,10 @@ data class Details(
     val moderation: ModerationInfo?,
     @SerializedName("capabilities")
     val capabilities: Map<String, Capability>? = null,
+    // Apps sharing tags with this one, resolved server-side and sent
+    // along with the app info. Absent for apps that have no tags yet.
+    @SerializedName("similar")
+    val similar: List<AppEntity>? = null,
 ) : Parcelable
 
 // Note: the legacy `actions` field on [Details] is still serialised by

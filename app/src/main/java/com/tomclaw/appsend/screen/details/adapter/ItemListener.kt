@@ -40,4 +40,6 @@ interface ItemListener {
 
     fun onRequestAIReview(appId: String)
 
+    fun onTagClick(tag: String)
+
 }

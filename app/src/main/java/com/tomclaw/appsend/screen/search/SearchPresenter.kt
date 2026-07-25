@@ -44,6 +44,7 @@ class SearchPresenterImpl(
     private val appConverter: AppConverter,
     private val analytics: Analytics,
     private val schedulers: SchedulersFactory,
+    private val tag: String?,
     state: Bundle?
 ) : SearchPresenter {
 
@@ -55,7 +56,12 @@ class SearchPresenterImpl(
     private var items: List<AppItem>? =
         state?.getParcelableArrayListCompat(KEY_APPS, AppItem::class.java)
     private var isError: Boolean = state?.getBoolean(KEY_ERROR) == true
-    private var query: String = state?.getString(KEY_QUERY) ?: ""
+
+    // A tag screen searches by a query fixed at creation; the free-text
+    // screen starts empty and waits for the first keystroke.
+    private var query: String = state?.getString(KEY_QUERY)
+        ?: tag?.let { TAG_QUERY_PREFIX + it }
+        ?: ""
 
     override fun attachView(view: SearchView) {
         this.view = view
@@ -68,22 +74,26 @@ class SearchPresenterImpl(
             analytics.trackEvent("search-refresh")
         }
 
-        // Debounce search queries
-        subscriptions += view.queryTextChanges()
-            .debounce(DEBOUNCE_DELAY_MS, TimeUnit.MILLISECONDS, schedulers.mainThread())
-            .distinctUntilChanged()
-            .subscribe { text ->
-                query = text
-                if (text.isBlank()) {
-                    clearResults()
-                } else {
-                    performSearch()
+        // The query can only change where there is an input to type in,
+        // so a tag screen needs none of the debounce machinery.
+        if (tag == null) {
+            // Debounce search queries
+            subscriptions += view.queryTextChanges()
+                .debounce(DEBOUNCE_DELAY_MS, TimeUnit.MILLISECONDS, schedulers.mainThread())
+                .distinctUntilChanged()
+                .subscribe { text ->
+                    query = text
+                    if (text.isBlank()) {
+                        clearResults()
+                    } else {
+                        performSearch()
+                    }
                 }
-            }
 
-        // Restore query text
-        if (query.isNotEmpty()) {
-            view.setQueryText(query)
+            // Restore query text
+            if (query.isNotEmpty()) {
+                view.setQueryText(query)
+            }
         }
 
         if (isError) {
@@ -224,4 +234,7 @@ private const val KEY_APPS = "apps"
 private const val KEY_ERROR = "error"
 private const val KEY_QUERY = "query"
 private const val DEBOUNCE_DELAY_MS = 500L
+
+// The search API filters by tag when the query carries this prefix.
+private const val TAG_QUERY_PREFIX = "tags:"
 

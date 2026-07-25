@@ -317,6 +317,7 @@
     <string name="ai_note_pending">ИИ изучает описание…</string>
     <string name="ai_note_ask_action">Спросить ИИ</string>
     <string name="ai_review_error">Не удалось запросить ИИ</string>
+    <string name="tags_block_title">Теги</string>
     <string name="security_scanning_short">Проверка</string>
     <string name="security_safe_short">Безопасно</string>
     <string name="security_suspicious_short">Подозрительно</string>

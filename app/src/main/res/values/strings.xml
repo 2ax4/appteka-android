@@ -319,6 +319,8 @@
     <string name="ai_note_pending">AI is reading through the description…</string>
     <string name="ai_note_ask_action">Ask AI</string>
     <string name="ai_review_error">Failed to request AI review</string>
+    <string name="tags_block_title">Tags</string>
+    <string name="tag_search_title">#%1$s</string>
     <string name="security_scanning_short">Scanning</string>
     <string name="security_safe_short">Safe</string>
     <string name="security_suspicious_short">Suspicious</string>

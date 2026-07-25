@@ -24,6 +24,7 @@ import com.tomclaw.appsend.screen.details.adapter.screenshots.ScreenshotsItem
 import com.tomclaw.appsend.screen.details.adapter.status.StatusAction
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItem
 import com.tomclaw.appsend.screen.details.adapter.status.StatusType
+import com.tomclaw.appsend.screen.details.adapter.tags.TagsItem
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItem
 import com.tomclaw.appsend.screen.details.adapter.user_review.UserReviewItem
 import com.tomclaw.appsend.screen.details.adapter.whats_new.WhatsNewItem
@@ -258,6 +259,13 @@ class DetailsConverterImpl(
             sourceUrl = details.meta?.sourceUrl,
             translationState = translationState,
         )
+        val tags = details.meta?.aiTags.orEmpty()
+        if (tags.isNotEmpty()) {
+            items += TagsItem(
+                id = id++,
+                tags = tags,
+            )
+        }
         if (!details.info.abi.isNullOrEmpty()) {
             items += AbiItem(
                 id = id++,

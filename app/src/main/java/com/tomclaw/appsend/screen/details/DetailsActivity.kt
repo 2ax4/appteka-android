@@ -38,6 +38,7 @@ import com.tomclaw.appsend.screen.permissions.createPermissionsActivityIntent
 import com.tomclaw.appsend.screen.profile.createProfileActivityIntent
 import com.tomclaw.appsend.screen.rate.createRateActivityIntent
 import com.tomclaw.appsend.screen.ratings.createRatingsActivityIntent
+import com.tomclaw.appsend.screen.search.createSearchActivityIntent
 import com.tomclaw.appsend.screen.unlink.createUnlinkActivityIntent
 import com.tomclaw.appsend.screen.unpublish.createUnpublishActivityIntent
 import com.tomclaw.appsend.screen.upload.createUploadActivityIntent
@@ -429,6 +430,12 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.DetailsRouter {
             .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(intent)
         finish()
+    }
+
+    override fun openTagScreen(tag: String) {
+        val intent = createSearchActivityIntent(context = this, tag = tag)
+        startActivity(intent)
+        analytics.trackEvent("details-open-tag")
     }
 
     override fun openGooglePlay(packageName: String) {
