@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-    Vertical stack rather than a toolbar overlaying the content: the
-    selected-tag row appears and disappears as tags are added, and the
-    list below has to follow it. Anchoring the content with a fixed
-    top margin would mean nudging that margin from code every time the
-    row's height changes.
+    A CoordinatorLayout because that is the only parent where an app bar
+    receives the nested-scroll callbacks its lift is driven by. It also
+    positions the content under the bar, so the selected-tag row can
+    appear and disappear without anyone adjusting a top margin.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical">
+    android:fitsSystemWindows="true">
 
     <!--
         The query field and the active tag filters are one surface, so
@@ -73,8 +72,8 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
@@ -116,4 +115,4 @@
 
     </FrameLayout>
 
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
