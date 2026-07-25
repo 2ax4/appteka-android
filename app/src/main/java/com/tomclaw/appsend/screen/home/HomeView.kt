@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.Button
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.isVisible
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -113,6 +114,7 @@ class HomeViewImpl(view: View) : HomeView {
     private val context = view.context
     private val coordinator: View = view.findViewById(R.id.coordinator)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
+    private val storeFilters: View = view.findViewById(R.id.store_filters)
     private val updateBlock: View = view.findViewById(R.id.update_block)
     private val frameLayout: View = view.findViewById(R.id.frame)
     private val bottomNavigation: BottomNavigationView = view.findViewById(R.id.bottom_navigation)
@@ -190,6 +192,10 @@ class HomeViewImpl(view: View) : HomeView {
             inflateMenu(R.menu.store_menu)
             invalidateMenu()
         }
+        // Filters are part of the store's chrome, so they come and go
+        // with its title and menu. The store screen owns what they do;
+        // the app bar only owns where they sit.
+        storeFilters.isVisible = true
     }
 
     override fun showFeedToolbar() {
@@ -199,6 +205,7 @@ class HomeViewImpl(view: View) : HomeView {
             inflateMenu(R.menu.home_menu)
             invalidateMenu()
         }
+        storeFilters.isVisible = false
     }
 
     override fun showDiscussToolbar() {
@@ -208,6 +215,7 @@ class HomeViewImpl(view: View) : HomeView {
             inflateMenu(R.menu.home_menu)
             invalidateMenu()
         }
+        storeFilters.isVisible = false
     }
 
     override fun showProfileToolbar() {
@@ -217,6 +225,7 @@ class HomeViewImpl(view: View) : HomeView {
             inflateMenu(R.menu.user_menu)
             invalidateMenu()
         }
+        storeFilters.isVisible = false
     }
 
     override fun selectStoreTab() {

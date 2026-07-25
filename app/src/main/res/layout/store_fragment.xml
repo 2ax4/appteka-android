@@ -25,51 +25,11 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
-                    <HorizontalScrollView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="4dp"
-                        android:clipToPadding="false"
-                        android:paddingHorizontal="12dp"
-                        android:scrollbars="none">
+                    <!-- The filter chips live in the shared app bar (see
+                         home_activity), so they lift with it instead of
+                         sitting on the content as a band of a third
+                         colour, and stay reachable down the list. -->
 
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/filter_chips"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:chipSpacingHorizontal="8dp"
-                            app:singleLine="true">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_category"
-                                style="@style/Widget.Material3.Chip.Assist"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/all_categories"
-                                app:chipIcon="@drawable/ic_category"
-                                app:chipIconTint="?attr/colorOnSurfaceVariant" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_open_source"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checkable="true"
-                                android:text="@string/open_source_short" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_exclusive"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checkable="true"
-                                android:text="@string/exclusive_short" />
-
-                        </com.google.android.material.chip.ChipGroup>
-
-                    </HorizontalScrollView>
-                    
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recycler"
                         android:layout_width="match_parent"

@@ -59,8 +59,16 @@ interface StoreView {
 
 }
 
+/**
+ * @param view the screen's own content.
+ * @param filters the filter chip row, which lives in the host's app bar
+ *   so that it lifts with it and stays reachable down a long catalog.
+ *   Passed in rather than looked up, so the borrowing is stated instead
+ *   of hidden inside a search of the activity's view tree.
+ */
 class StoreViewImpl(
     view: View,
+    filters: View,
     private val preferences: StorePreferencesProvider,
     private val adapter: SimpleRecyclerAdapter,
 ) : StoreView {
@@ -72,9 +80,9 @@ class StoreViewImpl(
     private val recycler: RecyclerView = view.findViewById(R.id.recycler)
     private val error: TextView = view.findViewById(R.id.error_text)
     private val retryButton: View = view.findViewById(R.id.button_retry)
-    private val categoryChip: Chip = view.findViewById(R.id.chip_category)
-    private val openSourceChip: Chip = view.findViewById(R.id.chip_open_source)
-    private val exclusiveChip: Chip = view.findViewById(R.id.chip_exclusive)
+    private val categoryChip: Chip = filters.findViewById(R.id.chip_category)
+    private val openSourceChip: Chip = filters.findViewById(R.id.chip_open_source)
+    private val exclusiveChip: Chip = filters.findViewById(R.id.chip_exclusive)
 
     private val retryRelay = PublishRelay.create<Unit>()
     private val refreshRelay = PublishRelay.create<Unit>()

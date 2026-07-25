@@ -20,6 +20,61 @@
             android:layout_height="?attr/actionBarSize"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
+        <!--
+            Store filters. Per-tab chrome on a shared app bar, the same
+            way the toolbar's title and menu are swapped — HomeView
+            shows this row for the store tab and hides it for the rest.
+            It belongs in the bar rather than at the top of the list so
+            it takes the lifted colour along with it, and so the filters
+            stay reachable however far the catalog is scrolled.
+        -->
+        <HorizontalScrollView
+            android:id="@+id/store_filters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="4dp"
+            android:scrollbars="none"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/filter_chips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="8dp"
+                app:singleLine="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_category"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/all_categories"
+                    app:chipIcon="@drawable/ic_category"
+                    app:chipIconTint="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_open_source"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:text="@string/open_source_short" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_exclusive"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:text="@string/exclusive_short" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </HorizontalScrollView>
+
         <include
             android:id="@+id/update_block"
             layout="@layout/update_block"

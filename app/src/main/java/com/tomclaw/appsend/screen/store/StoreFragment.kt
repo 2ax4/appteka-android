@@ -61,7 +61,10 @@ class StoreFragment : Fragment(), StorePresenter.StoreRouter, HomeFragment {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val adapter = SimpleRecyclerAdapter(adapterPresenter, binder)
-        val topicsView = StoreViewImpl(view, preferences, adapter)
+        // The filter row is chrome, and chrome belongs to the host's app
+        // bar — the same one that carries this tab's title and menu.
+        val filters = requireActivity().findViewById<View>(R.id.store_filters)
+        val topicsView = StoreViewImpl(view, filters, preferences, adapter)
 
         presenter.attachView(topicsView)
     }
