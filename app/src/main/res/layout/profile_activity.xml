@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    A bare host: the screen it holds brings its own app bar, and that
+    bar takes the top inset so its background — lifted colour included —
+    reaches behind the status bar. Consuming the inset here instead
+    would pad the whole fragment down and leave the status bar showing
+    the window background while the bar lifts beneath it.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:layout_height="match_parent">
 
     <FrameLayout
         android:id="@+id/profile_fragment"
