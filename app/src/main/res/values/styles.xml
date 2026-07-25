@@ -135,7 +135,15 @@
         <item name="colorOutline">#79747E</item>
         <item name="colorOutlineVariant">#CAC4D0</item>
 
-        <item name="android:windowBackground">@color/surface_color_light</item>
+        <!--
+            Follows colorSurface rather than repeating its value. The
+            status bar is transparent and the root fits system windows,
+            so this colour is what shows behind it — and a top app bar
+            at rest is colorSurface too. Pinned to a literal white it
+            drifted apart from both the moment dynamic colour replaced
+            colorSurface with a wallpaper-derived tint.
+        -->
+        <item name="android:windowBackground">?attr/colorSurface</item>
 
         <item name="text_primary_color">@color/text_primary_color_light</item>
         <item name="text_secondary_color">#4e4e4e</item>

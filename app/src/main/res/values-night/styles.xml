@@ -40,7 +40,10 @@
         <item name="colorOutline">#938F99</item>
         <item name="colorOutlineVariant">#49454F</item>
 
-        <item name="android:windowBackground">@color/surface_color_dark</item>
+        <!-- See the light theme: follows colorSurface so the status bar
+             area and a resting app bar stay the same colour under
+             dynamic colour. -->
+        <item name="android:windowBackground">?attr/colorSurface</item>
 
         <item name="text_primary_color">@color/text_primary_color_dark</item>
         <item name="text_secondary_color">#B1B1B1</item>
