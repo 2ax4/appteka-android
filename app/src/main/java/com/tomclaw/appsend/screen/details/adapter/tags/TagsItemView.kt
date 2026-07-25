@@ -28,6 +28,11 @@ class TagsItemViewHolder(view: View) : BaseItemViewHolder(view), TagsItemView {
         for (tag in tags) {
             val chip = inflater.inflate(R.layout.details_tag_chip, chips, false) as Chip
             chip.text = tag
+            // Drop the 48dp accessibility-minimum padding, which is
+            // invisible but pads each chip vertically and would dwarf
+            // chipSpacingVertical on a multi-row layout. Same reasoning
+            // as the profile badges — see HeaderItemView.
+            chip.setEnsureMinTouchTargetSize(false)
             chip.setOnClickListener { tagClickListener?.invoke(tag) }
             chips.addView(chip)
         }

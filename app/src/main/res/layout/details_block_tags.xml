@@ -18,12 +18,19 @@
         android:textColor="?text_primary_color"
         android:textSize="16sp" />
 
+    <!--
+        Vertical spacing matches horizontal so multi-row tag layouts keep
+        an even rhythm. The chips disable ensureMinTouchTargetSize at
+        inflation (see TagsItemView) — without that, the invisible 48dp
+        touch target pads every row and no spacing value here can make
+        the gaps look equal.
+    -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/tags_chips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         app:chipSpacingHorizontal="8dp"
-        app:chipSpacingVertical="4dp" />
+        app:chipSpacingVertical="8dp" />
 
 </LinearLayout>
