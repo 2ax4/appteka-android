@@ -23,8 +23,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:clipToPadding="false"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        tools:listitem="@layout/details_similar_app_item" />
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        tools:listitem="@layout/profile_app_item" />
 
 </LinearLayout>

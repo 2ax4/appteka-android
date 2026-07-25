@@ -57,8 +57,8 @@ import com.tomclaw.appsend.screen.details.adapter.status.StatusItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.similar.SimilarItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.similar.SimilarItemPresenter
-import com.tomclaw.appsend.screen.details.adapter.similar_app.SimilarAppItemBlueprint
-import com.tomclaw.appsend.screen.details.adapter.similar_app.SimilarAppItemPresenter
+import com.tomclaw.appsend.screen.profile.adapter.app.AppItemBlueprint
+import com.tomclaw.appsend.screen.profile.adapter.app.AppItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.tags.TagsItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.tags.TagsItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItemBlueprint
@@ -482,18 +482,20 @@ class DetailsModule(
         adapterPresenter
     )
 
+    // The tiles inside the rail are the profile's app tiles — same
+    // component, so the shelf matches "Uploaded" there by construction.
     @Provides
     @IntoSet
     @PerActivity
     internal fun provideSimilarAppItemBlueprint(
-        presenter: SimilarAppItemPresenter
-    ): ItemBlueprint<*, *> = SimilarAppItemBlueprint(presenter)
+        presenter: AppItemPresenter
+    ): ItemBlueprint<*, *> = AppItemBlueprint(presenter)
 
     @Provides
     @PerActivity
     internal fun provideSimilarAppItemPresenter(
         presenter: SimilarItemPresenter
-    ) = SimilarAppItemPresenter(presenter)
+    ) = AppItemPresenter(presenter)
 
 }
 

@@ -25,8 +25,8 @@ import com.tomclaw.appsend.screen.details.adapter.status.StatusAction
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItem
 import com.tomclaw.appsend.screen.details.adapter.status.StatusType
 import com.tomclaw.appsend.screen.details.adapter.similar.SimilarItem
-import com.tomclaw.appsend.screen.details.adapter.similar_app.SimilarAppItem
 import com.tomclaw.appsend.screen.details.adapter.tags.TagsItem
+import com.tomclaw.appsend.screen.profile.adapter.app.AppItem
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItem
 import com.tomclaw.appsend.screen.details.adapter.user_review.UserReviewItem
 import com.tomclaw.appsend.screen.details.adapter.whats_new.WhatsNewItem
@@ -302,11 +302,11 @@ class DetailsConverterImpl(
             items += SimilarItem(
                 id = id++,
                 items = similar.map { entity ->
-                    SimilarAppItem(
+                    AppItem(
                         id = id++,
                         appId = entity.appId,
-                        title = entity.title,
                         icon = entity.icon,
+                        title = entity.title,
                         rating = entity.rating,
                     )
                 },
