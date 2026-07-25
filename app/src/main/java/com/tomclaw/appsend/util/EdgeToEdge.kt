@@ -32,6 +32,23 @@ fun View.applyBottomInsets() {
 }
 
 /**
+ * Applies bottom insets as padding, counting the keyboard as well as
+ * the system bars and taking whichever is taller.
+ *
+ * For a view pinned to the bottom that the keyboard opens over — a
+ * message box, say. Padding for the navigation bar alone would leave a
+ * gap of exactly that height between the view and the raised keyboard.
+ */
+fun View.applyBottomInsetsWithIme() {
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, windowInsets ->
+        val bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+        val ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        view.updatePadding(bottom = maxOf(bars, ime))
+        windowInsets
+    }
+}
+
+/**
  * Applies bottom window insets as margin to this view.
  * Useful for FAB buttons to avoid navigation bar overlap.
  */

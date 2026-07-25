@@ -29,6 +29,7 @@ import com.tomclaw.appsend.dto.MessageEntity
 import com.tomclaw.appsend.screen.chat.view.ChatAttachmentsStrip
 import com.tomclaw.appsend.uikit.permissions.PermissionBanner
 import com.tomclaw.appsend.util.ActionItem
+import com.tomclaw.appsend.util.applyBottomInsetsWithIme
 import com.tomclaw.appsend.util.ActionsAdapter
 import com.tomclaw.appsend.util.adapter.AdapterPresenter
 import com.tomclaw.appsend.util.clicks
@@ -179,6 +180,7 @@ class ChatViewImpl(
     private val overlayProgress: View = view.findViewById(R.id.overlay_progress)
     private val errorText: TextView = view.findViewById(R.id.error_text)
     private val recycler: RecyclerView = view.findViewById(R.id.recycler)
+    private val inputCard: View = view.findViewById(R.id.input_card)
     private val messageEdit: EditText = view.findViewById(R.id.message_edit)
     private val attachButton: MaterialButton = view.findViewById(R.id.attach_button)
     private val sendButton: MaterialButton = view.findViewById(R.id.send_button)
@@ -212,6 +214,13 @@ class ChatViewImpl(
     private val layoutManager: LinearLayoutManager
 
     init {
+        // The app bar takes the top inset so it paints behind the status
+        // bar. The bottom one goes on the whole content area rather than
+        // on the message box alone: the box is pinned to the bottom of
+        // that area, and padding inside it would not lift it clear of an
+        // open keyboard — only shrinking what holds it does that.
+        flipper.applyBottomInsetsWithIme()
+
         title.setText(R.string.chat_activity)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {

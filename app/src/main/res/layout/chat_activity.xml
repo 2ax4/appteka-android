@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:id="@+id/root"
-    android:fitsSystemWindows="true"
     tools:context=".screen.chat.ChatActivity">
 
     <ViewFlipper
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:id="@+id/view_flipper">
+        android:id="@+id/view_flipper"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <RelativeLayout
             android:layout_height="match_parent"
@@ -165,17 +164,25 @@
 
     </ViewFlipper>
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:layout_height="?attr/actionBarSize"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:id="@+id/toolbar"
-        app:contentInsetStart="0dp"
-        app:contentInsetStartWithNavigation="0dp"
-        app:contentInsetLeft="0dp">
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:liftOnScrollTargetViewId="@id/recycler">
 
-        <include
-            layout="@layout/icon_toolbar" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:layout_height="?attr/actionBarSize"
+            android:layout_width="match_parent"
+            android:id="@+id/toolbar"
+            app:contentInsetStart="0dp"
+            app:contentInsetStartWithNavigation="0dp"
+            app:contentInsetLeft="0dp">
 
-    </com.google.android.material.appbar.MaterialToolbar>
+            <include
+                layout="@layout/icon_toolbar" />
 
-</FrameLayout>
+        </com.google.android.material.appbar.MaterialToolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
