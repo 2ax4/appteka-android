@@ -17,6 +17,7 @@ import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.core.permissions.Capability
 import com.tomclaw.appsend.core.permissions.CapabilityHintResolver
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.ActionItem
 import com.tomclaw.appsend.util.ActionsAdapter
 import com.tomclaw.appsend.util.clicks
@@ -111,6 +112,10 @@ class FeedViewImpl(
         })
 
         retryButton.clicks(retryRelay)
+
+        // Insets: content keeps clear of the navigation
+        // bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

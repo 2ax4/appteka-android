@@ -14,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.clicks
 import io.reactivex.rxjava3.core.Observable
 
@@ -99,6 +100,10 @@ class FavoriteViewImpl(
             onSwiped = { itemId -> removeSwipesRelay.accept(itemId) },
         )
         ItemTouchHelper(swipeCallback).attachToRecyclerView(recycler)
+
+        // Insets: the list keeps its last row clear of the
+        // navigation bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

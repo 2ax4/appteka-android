@@ -15,6 +15,7 @@ import com.google.android.material.chip.ChipGroup
 import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.changes
 import com.tomclaw.appsend.util.clicks
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
@@ -99,6 +100,10 @@ class SearchViewImpl(
         queryEdit.changes { text ->
             queryTextRelay.accept(text)
         }
+
+        // Insets: the list keeps its last row clear of the
+        // navigation bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

@@ -265,7 +265,16 @@
         pointing the bar at the real scrolling view, which each layout
         now does.
     -->
-    <style name="AppBarLayoutStyle" parent="Widget.Material3.AppBarLayout" />
+    <style name="AppBarLayoutStyle" parent="Widget.Material3.AppBarLayout">
+        <!--
+            The bar extends under the status bar and pads itself down by
+            the inset, so the strip above it is the bar's own background
+            and takes the lifted colour with it. Without this the status
+            bar keeps showing the window background and a lifted bar
+            reads as a stripe between two lighter bands.
+        -->
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3" />
 

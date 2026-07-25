@@ -22,6 +22,7 @@ import com.tomclaw.appsend.core.permissions.Capability
 import com.tomclaw.appsend.core.permissions.CapabilityHintResolver
 import com.tomclaw.appsend.screen.details.adapter.play.PlaySecurityStatus
 import com.tomclaw.appsend.screen.details.api.RejectionReason
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.ActionItem
 import com.tomclaw.appsend.util.ActionsAdapter
 import com.tomclaw.appsend.util.hide
@@ -234,6 +235,10 @@ class DetailsViewImpl(
         recycler.layoutManager = layoutManager
         recycler.itemAnimator = DefaultItemAnimator()
         recycler.itemAnimator?.changeDuration = DURATION_MEDIUM
+
+        // Insets: content keeps clear of the navigation
+        // bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

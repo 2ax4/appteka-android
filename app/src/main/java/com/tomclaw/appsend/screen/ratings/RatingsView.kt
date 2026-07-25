@@ -15,6 +15,7 @@ import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.core.permissions.Capability
 import com.tomclaw.appsend.core.permissions.CapabilityHintResolver
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.clicks
 import io.reactivex.rxjava3.core.Observable
 
@@ -88,6 +89,10 @@ class RatingsViewImpl(
         refresher.setOnRefreshListener { refreshRelay.accept(Unit) }
 
         emptyText.text = context.getString(R.string.empty_list)
+
+        // Insets: the list keeps its last row clear of the
+        // navigation bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

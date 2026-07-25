@@ -17,6 +17,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.screen.distro.adapter.apk.ApkItem
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.ActionItem
 import com.tomclaw.appsend.util.ActionsAdapter
 import com.tomclaw.appsend.util.clicks
@@ -116,6 +117,10 @@ class DistroViewImpl(
         refresher.setOnRefreshListener { refreshRelay.accept(Unit) }
 
         retryButton.clicks(retryRelay)
+
+        // Insets: the list keeps its last row clear of the
+        // navigation bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

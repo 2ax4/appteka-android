@@ -15,6 +15,7 @@ import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.dto.Badge
 import com.tomclaw.appsend.uikit.badges.BadgeBottomSheet
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.hide
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
 import com.tomclaw.appsend.util.show
@@ -114,6 +115,10 @@ class ProfileViewImpl(
         recycler.layoutManager = layoutManager
         recycler.itemAnimator = DefaultItemAnimator()
         recycler.itemAnimator?.changeDuration = DURATION_MEDIUM
+
+        // Insets: content keeps clear of the navigation
+        // bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {

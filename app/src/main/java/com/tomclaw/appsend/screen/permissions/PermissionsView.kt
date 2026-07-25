@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
 import com.jakewharton.rxrelay3.PublishRelay
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.R
 import io.reactivex.rxjava3.core.Observable
 
@@ -40,6 +41,10 @@ class PermissionsViewImpl(
         recycler.layoutManager = layoutManager
         recycler.itemAnimator = DefaultItemAnimator()
         recycler.itemAnimator?.changeDuration = DURATION_MEDIUM
+
+        // Insets: the list keeps its last row clear of the
+        // navigation bar while still scrolling underneath it.
+        recycler.applyBottomInsets()
     }
 
     @SuppressLint("NotifyDataSetChanged")

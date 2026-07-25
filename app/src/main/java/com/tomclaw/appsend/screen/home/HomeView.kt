@@ -15,7 +15,6 @@ import com.tomclaw.appsend.core.permissions.CapabilityHintResolver
 import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.applyBottomInsetsAsMargin
 import com.tomclaw.appsend.util.applyBottomMarginForView
-import com.tomclaw.appsend.util.applyTopInsets
 import com.tomclaw.appsend.util.clicks
 import com.tomclaw.appsend.util.hide
 import com.tomclaw.appsend.util.show
@@ -172,8 +171,11 @@ class HomeViewImpl(view: View) : HomeView {
         updateButton.clicks(updateRelay)
         laterButton.clicks(laterRelay)
 
-        // Apply edge-to-edge insets
-        coordinator.applyTopInsets()
+        // Apply edge-to-edge insets. The top one belongs to the app bar,
+        // which takes it as padding and so paints its own background —
+        // lifted colour included — behind the status bar. Padding the
+        // coordinator here instead would push the bar clear of the
+        // status bar and apply the inset twice.
         bottomNavigation.applyBottomInsets()
         frameLayout.applyBottomMarginForView(bottomNavigation)
         uploadButton.applyBottomInsetsAsMargin()
