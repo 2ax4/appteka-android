@@ -150,13 +150,20 @@ class HomeActivity : AppCompatActivity(), HomePresenter.HomeRouter {
     }
 
     private fun replaceFragment(fragment: Fragment, index: Int) {
+        val tag = "fragment$index"
+        // Returning from another screen re-binds the current tab, and so
+        // does every status load. Replacing the fragment with itself
+        // would throw away its list position and blink the app bar
+        // through a lift reset each time.
+        if (supportFragmentManager.findFragmentById(R.id.frame)?.tag == tag) return
+
         pendingFragmentRunnable?.let { handler.removeCallbacks(it) }
         val runnable = Runnable {
             if (!isFinishing && !supportFragmentManager.isStateSaved) {
                 supportFragmentManager
                     .beginTransaction()
                     .setCustomAnimations(0, 0)
-                    .replace(R.id.frame, fragment, "fragment$index")
+                    .replace(R.id.frame, fragment, tag)
                     .commitAllowingStateLoss()
                 resetAppBarLift()
             }
