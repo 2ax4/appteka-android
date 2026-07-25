@@ -433,7 +433,7 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.DetailsRouter {
     }
 
     override fun openTagScreen(tag: String) {
-        val intent = createSearchActivityIntent(context = this, tag = tag)
+        val intent = createSearchActivityIntent(context = this, tags = listOf(tag))
         startActivity(intent)
         analytics.trackEvent("details-open-tag")
     }

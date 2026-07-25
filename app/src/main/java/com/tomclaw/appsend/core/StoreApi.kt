@@ -3,6 +3,7 @@ package com.tomclaw.appsend.core
 import com.tomclaw.appsend.categories.CategoriesResponse
 import com.tomclaw.appsend.core.permissions.api.UserCapabilitiesResponse
 import com.tomclaw.appsend.dto.StoreResponse
+import com.tomclaw.appsend.dto.TagsResponse
 import com.tomclaw.appsend.screen.auth.request_code.api.RequestCodeResponse
 import com.tomclaw.appsend.screen.auth.verify_code.api.VerifyCodeResponse
 import com.tomclaw.appsend.screen.chat.api.HistoryResponse
@@ -84,12 +85,25 @@ interface StoreApi {
         @Query("exclusive") exclusive: Boolean? = null
     ): Single<StoreResponse<AppsListResponse>>
 
+    // Text and tags are independent filters: either alone, or both to
+    // narrow a text search to apps carrying every listed tag. Tags are
+    // comma-separated, since a tag can itself contain spaces
+    // ("file manager").
     @GET("1/app/search")
     fun searchApps(
-        @Query("query") query: String,
+        @Query("query") query: String?,
+        @Query("tags") tags: String?,
         @Query("offset") offset: Int?,
         @Query("locale") locale: String
     ): Single<StoreResponse<AppsListResponse>>
+
+    // The tag vocabulary with per-tag app counts, most used first.
+    // min_count trims the long tail of tags belonging to a couple of
+    // apps each.
+    @GET("1/tags")
+    fun getTags(
+        @Query("min_count") minCount: Int?
+    ): Single<StoreResponse<TagsResponse>>
 
     @GET("1/app/moderation/list")
     fun getModerationList(

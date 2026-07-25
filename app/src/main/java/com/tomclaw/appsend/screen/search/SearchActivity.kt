@@ -3,7 +3,6 @@ package com.tomclaw.appsend.screen.search
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.tomclaw.appsend.util.adapter.ItemBinder
 import com.tomclaw.appsend.util.adapter.AdapterPresenter
@@ -13,7 +12,6 @@ import com.tomclaw.appsend.R
 import com.tomclaw.appsend.screen.search.di.SearchModule
 import com.tomclaw.appsend.util.ZipParcelable
 import com.tomclaw.appsend.util.getParcelableCompat
-import com.tomclaw.appsend.util.hide
 import javax.inject.Inject
 
 class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
@@ -27,8 +25,12 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
     @Inject
     lateinit var binder: ItemBinder
 
-    /** Non-null when the screen shows apps carrying a single tag. */
-    private val tag: String? by lazy { intent.getStringExtra(EXTRA_TAG) }
+    /** Tags to start with — a tag tapped on an app page, if any. */
+    private val initialTags: List<String> by lazy {
+        intent.getStringArrayListExtra(EXTRA_TAGS).orEmpty()
+    }
+
+    private lateinit var searchView: SearchView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,13 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
             ?.getParcelableCompat(KEY_PRESENTER_STATE, ZipParcelable::class.java)
             ?.restore<Bundle>()
         appComponent
-            .searchComponent(SearchModule(context = this, tag = tag, state = presenterState))
+            .searchComponent(
+                SearchModule(
+                    context = this,
+                    initialTags = initialTags,
+                    state = presenterState
+                )
+            )
             .inject(activity = this)
 
         setContentView(R.layout.activity_search)
@@ -45,8 +53,7 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
         setupToolbar()
 
         val adapter = SimpleRecyclerAdapter(adapterPresenter, binder)
-        val rootView = window.decorView
-        val searchView = SearchViewImpl(rootView, adapter)
+        searchView = SearchViewImpl(window.decorView, adapter)
 
         presenter.attachView(searchView)
     }
@@ -57,15 +64,9 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
         supportActionBar?.apply {
             setDisplayShowHomeEnabled(true)
             setDisplayHomeAsUpEnabled(true)
-            setDisplayShowTitleEnabled(true)
-            title = tag
-                ?.let { getString(R.string.tag_search_title, it) }
-                ?: getString(R.string.search_app)
-        }
-        // The tag screen has a fixed query, so the input would be dead
-        // weight — the tag itself is the title instead.
-        if (tag != null) {
-            findViewById<View>(R.id.query_edit).hide()
+            // The query field fills the toolbar, so there is no room for
+            // a title — and nothing to say that the field doesn't.
+            setDisplayShowTitleEnabled(false)
         }
     }
 
@@ -81,9 +82,11 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
 
     override fun onResume() {
         super.onResume()
-        if (tag != null) return
-        // Request focus on query edit text after resume
-        findViewById<android.widget.EditText>(R.id.query_edit)?.requestFocus()
+        // Arriving with tags already applied means results are on
+        // screen; popping the keyboard over them would be in the way.
+        if (initialTags.isEmpty()) {
+            searchView.requestQueryFocus()
+        }
     }
 
     override fun onDestroy() {
@@ -118,13 +121,17 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
 }
 
 /**
- * Opens search. Pass [tag] to list apps carrying that tag instead of
- * searching by free text.
+ * Opens search. Pass [tags] to start with those filters applied — the
+ * screen is the same either way, they are just criteria it begins with,
+ * and the visitor can drop them or add text.
  */
-fun createSearchActivityIntent(context: Context, tag: String? = null): Intent =
+fun createSearchActivityIntent(context: Context, tags: List<String> = emptyList()): Intent =
     Intent(context, SearchActivity::class.java)
-        .apply { tag?.let { putExtra(EXTRA_TAG, it) } }
+        .apply {
+            if (tags.isNotEmpty()) {
+                putStringArrayListExtra(EXTRA_TAGS, ArrayList(tags))
+            }
+        }
 
-private const val EXTRA_TAG = "tag"
+private const val EXTRA_TAGS = "tags"
 private const val KEY_PRESENTER_STATE = "presenter_state"
-

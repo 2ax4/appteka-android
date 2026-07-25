@@ -38,13 +38,21 @@ interface SearchPresenter : ItemListener {
 
 }
 
+/**
+ * Search over the catalog by free text, by tags, or by both at once.
+ *
+ * There is deliberately no notion of a "tag screen" here: arriving from
+ * a tag on an app page just seeds [tags] with it. Text and tags are two
+ * fields of the same query, so every path through this class is the
+ * same path — the criteria change, the search runs.
+ */
 class SearchPresenterImpl(
     private val searchInteractor: SearchInteractor,
     private val adapterPresenter: Lazy<AdapterPresenter>,
     private val appConverter: AppConverter,
     private val analytics: Analytics,
     private val schedulers: SchedulersFactory,
-    private val tag: String?,
+    initialTags: List<String>,
     state: Bundle?
 ) : SearchPresenter {
 
@@ -57,11 +65,15 @@ class SearchPresenterImpl(
         state?.getParcelableArrayListCompat(KEY_APPS, AppItem::class.java)
     private var isError: Boolean = state?.getBoolean(KEY_ERROR) == true
 
-    // A tag screen searches by a query fixed at creation; the free-text
-    // screen starts empty and waits for the first keystroke.
-    private var query: String = state?.getString(KEY_QUERY)
-        ?: tag?.let { TAG_QUERY_PREFIX + it }
-        ?: ""
+    private var query: String = state?.getString(KEY_QUERY).orEmpty()
+    private var tags: List<String> =
+        state?.getStringArrayList(KEY_TAGS) ?: initialTags
+
+    private var popularTags: List<String>? =
+        state?.getStringArrayList(KEY_POPULAR_TAGS)
+
+    private val hasCriteria: Boolean
+        get() = query.isNotBlank() || tags.isNotEmpty()
 
     override fun attachView(view: SearchView) {
         this.view = view
@@ -73,39 +85,34 @@ class SearchPresenterImpl(
             invalidateSearch()
             analytics.trackEvent("search-refresh")
         }
-
-        // The query can only change where there is an input to type in,
-        // so a tag screen needs none of the debounce machinery.
-        if (tag == null) {
-            // Debounce search queries
-            subscriptions += view.queryTextChanges()
-                .debounce(DEBOUNCE_DELAY_MS, TimeUnit.MILLISECONDS, schedulers.mainThread())
-                .distinctUntilChanged()
-                .subscribe { text ->
-                    query = text
-                    if (text.isBlank()) {
-                        clearResults()
-                    } else {
-                        performSearch()
-                    }
-                }
-
-            // Restore query text
-            if (query.isNotEmpty()) {
-                view.setQueryText(query)
+        subscriptions += view.queryTextChanges()
+            .debounce(DEBOUNCE_DELAY_MS, TimeUnit.MILLISECONDS, schedulers.mainThread())
+            .distinctUntilChanged()
+            .subscribe { text ->
+                query = text
+                onCriteriaChanged()
             }
+        subscriptions += view.tagRemoveClicks().subscribe { tag ->
+            tags = tags.filterNot { it == tag }
+            onCriteriaChanged()
+        }
+        subscriptions += view.popularTagClicks().subscribe { tag ->
+            if (tags.contains(tag)) return@subscribe
+            tags = tags + tag
+            analytics.trackEvent("search-popular-tag")
+            onCriteriaChanged()
         }
 
-        if (isError) {
-            onError()
-        } else {
-            items?.let { bindItems() } ?: run {
-                if (query.isNotEmpty()) {
-                    performSearch()
-                } else {
-                    view.showPlaceholder()
-                }
-            }
+        if (query.isNotEmpty()) {
+            view.setQueryText(query)
+        }
+        view.showSelectedTags(tags)
+
+        when {
+            isError -> onError()
+            items != null -> bindItems()
+            hasCriteria -> performSearch()
+            else -> showPlaceholder()
         }
     }
 
@@ -123,28 +130,34 @@ class SearchPresenterImpl(
     }
 
     override fun saveState() = Bundle().apply {
-        putParcelableArrayList(KEY_APPS, items?.let { ArrayList(items.orEmpty()) })
+        putParcelableArrayList(KEY_APPS, items?.let { ArrayList(it) })
         putBoolean(KEY_ERROR, isError)
         putString(KEY_QUERY, query)
+        putStringArrayList(KEY_TAGS, ArrayList(tags))
+        popularTags?.let { putStringArrayList(KEY_POPULAR_TAGS, ArrayList(it)) }
     }
 
     override fun invalidateSearch() {
         items = null
         isError = false
-        performSearch()
+        if (hasCriteria) performSearch() else showPlaceholder()
+    }
+
+    /** The one funnel: whatever changed the criteria, this decides what happens next. */
+    private fun onCriteriaChanged() {
+        view?.showSelectedTags(tags)
+        if (hasCriteria) performSearch() else showPlaceholder()
     }
 
     private fun performSearch() {
-        val currentQuery = query.trim()
-        if (currentQuery.isEmpty()) {
-            clearResults()
+        if (!hasCriteria) {
+            showPlaceholder()
             return
         }
 
-        // Clear previous results for new search
         items = null
 
-        subscriptions += searchInteractor.searchApps(currentQuery)
+        subscriptions += searchInteractor.searchApps(query.trim(), tags)
             .observeOn(schedulers.mainThread())
             .doOnSubscribe { if (view?.isPullRefreshing() == false) view?.showProgress() }
             .subscribe(
@@ -154,12 +167,9 @@ class SearchPresenterImpl(
     }
 
     private fun loadMore(offset: Int) {
-        val currentQuery = query.trim()
-        if (currentQuery.isEmpty()) {
-            return
-        }
+        if (!hasCriteria) return
 
-        subscriptions += searchInteractor.searchApps(currentQuery, offset)
+        subscriptions += searchInteractor.searchApps(query.trim(), tags, offset)
             .observeOn(schedulers.mainThread())
             .retryWhenNonAuthErrors()
             .subscribe(
@@ -174,12 +184,10 @@ class SearchPresenterImpl(
             .map { appConverter.convert(it) }
             .toList()
             .apply { if (isNotEmpty()) last().hasMore = true }
-        
+
         this.items = if (isNewSearch) {
-            // Replace items for new search
             newItems
         } else {
-            // Append items for pagination
             this.items
                 ?.apply { if (isNotEmpty()) last().hasProgress = false }
                 ?.plus(newItems) ?: newItems
@@ -189,28 +197,46 @@ class SearchPresenterImpl(
 
     private fun bindItems() {
         val items = this.items
-        when {
-            items.isNullOrEmpty() -> {
-                view?.showPlaceholder()
-            }
-
-            else -> {
-                adapterPresenter.get().onDataSourceChanged(items)
-                view?.let {
-                    it.contentUpdated()
-                    if (it.isPullRefreshing()) {
-                        it.stopPullRefreshing()
-                    } else {
-                        it.showContent()
-                    }
-                }
+        if (items.isNullOrEmpty()) {
+            // Nothing matched the criteria — that is a result, not an
+            // invitation to browse tags, so no suggestions here.
+            view?.showEmptyResult()
+            return
+        }
+        adapterPresenter.get().onDataSourceChanged(items)
+        view?.let {
+            it.contentUpdated()
+            if (it.isPullRefreshing()) {
+                it.stopPullRefreshing()
+            } else {
+                it.showContent()
             }
         }
     }
 
-    private fun clearResults() {
+    /** Nothing asked for yet — offer the catalog's own tags as a way in. */
+    private fun showPlaceholder() {
         items = null
         view?.showPlaceholder()
+
+        val loaded = popularTags
+        if (loaded != null) {
+            view?.showPopularTags(loaded.filterNot { tags.contains(it) })
+            return
+        }
+        subscriptions += searchInteractor.loadPopularTags()
+            .observeOn(schedulers.mainThread())
+            .subscribe(
+                { loadedTags ->
+                    popularTags = loadedTags
+                    view?.showPopularTags(loadedTags.filterNot { tags.contains(it) })
+                },
+                {
+                    // Suggestions are a convenience; failing to load them
+                    // leaves a plain placeholder rather than an error.
+                    view?.showPopularTags(emptyList())
+                }
+            )
     }
 
     private fun onError() {
@@ -233,8 +259,6 @@ class SearchPresenterImpl(
 private const val KEY_APPS = "apps"
 private const val KEY_ERROR = "error"
 private const val KEY_QUERY = "query"
+private const val KEY_TAGS = "tags"
+private const val KEY_POPULAR_TAGS = "popular_tags"
 private const val DEBOUNCE_DELAY_MS = 500L
-
-// The search API filters by tag when the query carries this prefix.
-private const val TAG_QUERY_PREFIX = "tags:"
-

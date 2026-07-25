@@ -1,49 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?><!--
+    Vertical stack rather than a toolbar overlaying the content: the
+    selected-tag row appears and disappears as tags are added, and the
+    list below has to follow it. Anchoring the content with a fixed
+    top margin would mean nudging that margin from code every time the
+    row's height changes.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
-
-    <include
-        layout="@layout/progress_overlay"
-        android:visibility="gone" />
-
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="?actionBarSize">
-
-        <ViewFlipper
-            android:id="@+id/view_flipper"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:ignore="UselessParent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="4dp"
-                android:paddingTop="4dp"
-                android:scrollbarStyle="outsideOverlay"
-                android:scrollbars="vertical" />
-
-            <include layout="@layout/empty_view" />
-
-            <include layout="@layout/error_view" />
-
-        </ViewFlipper>
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="7dp"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:background="@drawable/shadow" />
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -64,4 +32,78 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-</FrameLayout>
+    <!-- Active tag filters. Scrolls sideways instead of wrapping so the
+         list below never jumps by a row height as tags are added. -->
+    <HorizontalScrollView
+        android:id="@+id/selected_tags_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/search_toolbar_background"
+        android:paddingStart="12dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        android:scrollbars="none"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/selected_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipSpacingHorizontal="8dp"
+            app:singleLine="true" />
+
+    </HorizontalScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="7dp"
+        android:background="@drawable/shadow" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ViewFlipper
+                android:id="@+id/view_flipper"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:ignore="UselessParent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:scrollbarStyle="outsideOverlay"
+                    android:scrollbars="vertical" />
+
+                <!-- Nothing asked for yet: offers popular tags. -->
+                <include layout="@layout/search_placeholder" />
+
+                <!-- Asked, and nothing matched. A result in its own
+                     right, so it doesn't offer tags to browse. -->
+                <include layout="@layout/empty_view" />
+
+                <include layout="@layout/error_view" />
+
+            </ViewFlipper>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <include
+            layout="@layout/progress_overlay"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>

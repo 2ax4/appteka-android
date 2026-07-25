@@ -36,7 +36,8 @@ import java.util.Locale
 @Module
 class SearchModule(
     private val context: Context,
-    private val tag: String?,
+    /** Tags the screen opens with, e.g. one tapped on an app page. */
+    private val initialTags: List<String>,
     private val state: Bundle?
 ) {
 
@@ -54,7 +55,7 @@ class SearchModule(
         appConverter,
         analytics,
         schedulers,
-        tag,
+        initialTags,
         state
     )
 
