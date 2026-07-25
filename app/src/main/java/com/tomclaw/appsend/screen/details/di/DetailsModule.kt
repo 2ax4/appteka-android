@@ -55,6 +55,10 @@ import com.tomclaw.appsend.screen.details.adapter.security.SecurityItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.security.SecurityItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItemPresenter
+import com.tomclaw.appsend.screen.details.adapter.similar.SimilarItemBlueprint
+import com.tomclaw.appsend.screen.details.adapter.similar.SimilarItemPresenter
+import com.tomclaw.appsend.screen.details.adapter.similar_app.SimilarAppItemBlueprint
+import com.tomclaw.appsend.screen.details.adapter.similar_app.SimilarAppItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.tags.TagsItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.tags.TagsItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItemBlueprint
@@ -156,6 +160,13 @@ class DetailsModule(
     @Named(SCREENSHOT_ADAPTER_PRESENTER)
     @PerActivity
     internal fun provideScreenshotAdapterPresenter(binder: ItemBinder): AdapterPresenter {
+        return SimpleAdapterPresenter(binder)
+    }
+
+    @Provides
+    @Named(SIMILAR_ADAPTER_PRESENTER)
+    @PerActivity
+    internal fun provideSimilarAdapterPresenter(binder: ItemBinder): AdapterPresenter {
         return SimpleAdapterPresenter(binder)
     }
 
@@ -448,7 +459,44 @@ class DetailsModule(
         adapterPresenter
     )
 
+    @Provides
+    @IntoSet
+    @PerActivity
+    internal fun provideSimilarItemBlueprint(
+        presenter: SimilarItemPresenter,
+        @Named(SIMILAR_ADAPTER_PRESENTER) adapterPresenter: Lazy<AdapterPresenter>,
+        binder: Lazy<ItemBinder>,
+    ): ItemBlueprint<*, *> = SimilarItemBlueprint(
+        presenter,
+        adapterPresenter,
+        binder
+    )
+
+    @Provides
+    @PerActivity
+    internal fun provideSimilarItemPresenter(
+        presenter: DetailsPresenter,
+        @Named(SIMILAR_ADAPTER_PRESENTER) adapterPresenter: Lazy<AdapterPresenter>,
+    ) = SimilarItemPresenter(
+        presenter,
+        adapterPresenter
+    )
+
+    @Provides
+    @IntoSet
+    @PerActivity
+    internal fun provideSimilarAppItemBlueprint(
+        presenter: SimilarAppItemPresenter
+    ): ItemBlueprint<*, *> = SimilarAppItemBlueprint(presenter)
+
+    @Provides
+    @PerActivity
+    internal fun provideSimilarAppItemPresenter(
+        presenter: SimilarItemPresenter
+    ) = SimilarAppItemPresenter(presenter)
+
 }
 
 const val DETAILS_ADAPTER_PRESENTER = "DetailsAdapterPresenter"
 const val SCREENSHOT_ADAPTER_PRESENTER = "ScreenshotAdapterPresenter"
+const val SIMILAR_ADAPTER_PRESENTER = "SimilarAdapterPresenter"

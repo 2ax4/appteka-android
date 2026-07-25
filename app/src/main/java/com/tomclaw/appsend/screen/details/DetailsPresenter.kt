@@ -955,6 +955,10 @@ class DetailsPresenterImpl(
         router?.openTagScreen(tag)
     }
 
+    override fun onSimilarAppClick(appId: String, title: String) {
+        router?.openDetailsScreen(appId, title)
+    }
+
     private var aiPollingDisposable: Disposable? = null
     private var aiPollStartedAt: Long = 0L
 

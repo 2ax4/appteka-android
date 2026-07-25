@@ -24,6 +24,8 @@ import com.tomclaw.appsend.screen.details.adapter.screenshots.ScreenshotsItem
 import com.tomclaw.appsend.screen.details.adapter.status.StatusAction
 import com.tomclaw.appsend.screen.details.adapter.status.StatusItem
 import com.tomclaw.appsend.screen.details.adapter.status.StatusType
+import com.tomclaw.appsend.screen.details.adapter.similar.SimilarItem
+import com.tomclaw.appsend.screen.details.adapter.similar_app.SimilarAppItem
 import com.tomclaw.appsend.screen.details.adapter.tags.TagsItem
 import com.tomclaw.appsend.screen.details.adapter.user_rate.UserRateItem
 import com.tomclaw.appsend.screen.details.adapter.user_review.UserReviewItem
@@ -290,6 +292,24 @@ class DetailsConverterImpl(
                 rateCount = details.meta.rateCount,
                 rating = details.meta.rating,
                 scores = details.meta.scores
+            )
+        }
+
+        // Before the reviews rather than after them: the reviews list is
+        // unbounded, and a shelf below it would rarely be reached.
+        val similar = details.similar.orEmpty()
+        if (similar.isNotEmpty()) {
+            items += SimilarItem(
+                id = id++,
+                items = similar.map { entity ->
+                    SimilarAppItem(
+                        id = id++,
+                        appId = entity.appId,
+                        title = entity.title,
+                        icon = entity.icon,
+                        rating = entity.rating,
+                    )
+                },
             )
         }
 

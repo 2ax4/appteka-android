@@ -42,4 +42,6 @@ interface ItemListener {
 
     fun onTagClick(tag: String)
 
+    fun onSimilarAppClick(appId: String, title: String)
+
 }
