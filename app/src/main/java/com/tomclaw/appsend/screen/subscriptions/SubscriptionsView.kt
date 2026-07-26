@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.View
 import androidx.appcompat.widget.Toolbar
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jakewharton.rxrelay3.PublishRelay
@@ -30,6 +31,7 @@ class SubscriptionsViewImpl(
 
     private val context = view.context
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
+    private val appBar: AppBarLayout = view.findViewById(R.id.toolbar_container)
     private val tabs: TabLayout = view.findViewById(R.id.tabs)
     private val pager: ViewPager2 = view.findViewById(R.id.pager)
 
@@ -45,6 +47,18 @@ class SubscriptionsViewImpl(
             tab.text = context.getString(adapter.getItemTitle(position))
                 .capitalize(Locale.getDefault())
         }.attach()
+
+        pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            /**
+             * The bar looks its scrolling list up by id and caches what
+             * it finds. Both pages call theirs `recycler`, so re-set the
+             * id to drop the cache — otherwise the bar keeps watching
+             * the page that was left behind.
+             */
+            override fun onPageSelected(position: Int) {
+                appBar.liftOnScrollTargetViewId = R.id.recycler
+            }
+        })
     }
 
     @SuppressLint("NotifyDataSetChanged")

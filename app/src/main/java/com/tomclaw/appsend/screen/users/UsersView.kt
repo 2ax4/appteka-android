@@ -8,9 +8,10 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
+import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.clicks
 import io.reactivex.rxjava3.core.Observable
 
@@ -62,6 +63,10 @@ class UsersViewImpl(
         recycler.itemAnimator?.changeDuration = DURATION_MEDIUM
 
         refresher.setOnRefreshListener { refreshRelay.accept(Unit) }
+
+        // The host is a CoordinatorLayout, which hands insets down
+        // rather than padding itself.
+        recycler.applyBottomInsets()
     }
 
     override fun showProgress() {
