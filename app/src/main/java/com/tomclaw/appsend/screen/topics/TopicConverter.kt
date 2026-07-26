@@ -3,6 +3,7 @@ package com.tomclaw.appsend.screen.topics
 import com.tomclaw.appsend.dto.MessageEntity
 import com.tomclaw.appsend.dto.MessageType
 import com.tomclaw.appsend.dto.TopicEntity
+import com.tomclaw.appsend.dto.TopicType
 import com.tomclaw.appsend.screen.topics.adapter.topic.TopicItem
 import com.tomclaw.appsend.util.stripLeadingQuote
 
@@ -27,6 +28,7 @@ class TopicConverterImpl(
             title = entity.titleOrDefault(),
             description = entity.descriptionOrDefault(),
             packageName = entity.packageName,
+            isAppTopic = entity.type == TopicType.APP,
             isPinned = entity.isPinned,
             hasUnread = entity.readMsgId?.let { it < lastMsg.msgId } == true,
             lastMsgId = lastMsg.msgId,

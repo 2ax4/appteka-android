@@ -1,8 +1,10 @@
 package com.tomclaw.appsend.screen.topics.adapter.topic
 
+import android.graphics.Color
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import com.tomclaw.appsend.util.adapter.BaseItemViewHolder
 import com.tomclaw.appsend.util.adapter.ItemView
 import com.tomclaw.appsend.R
@@ -18,6 +20,10 @@ import com.tomclaw.imageloader.util.fetch
 interface TopicItemView : ItemView {
 
     fun setIcon(url: String?)
+
+    fun showIconBack()
+
+    fun hideIconBack()
 
     fun setTitle(title: String)
 
@@ -48,6 +54,7 @@ interface TopicItemView : ItemView {
 class TopicItemViewHolder(view: View) : BaseItemViewHolder(view), TopicItemView {
 
     private val icon: ImageView = view.findViewById(R.id.topic_icon)
+    private val iconBack: CardView = view.findViewById(R.id.topic_icon_back)
     private val title: TextView = view.findViewById(R.id.topic_title)
     private val msgText: TextView = view.findViewById(R.id.msg_text)
     private val msgAvatar: UserIconView = UserIconViewImpl(view.findViewById(R.id.msg_avatar))
@@ -57,6 +64,11 @@ class TopicItemViewHolder(view: View) : BaseItemViewHolder(view), TopicItemView 
 
     private var clickListener: (() -> Unit)? = null
     private var longClickListener: (() -> Unit)? = null
+
+    // Backdrop values come from the layout, so the styling stays in one place.
+    private val backRadius: Float = iconBack.radius
+    private val backElevation: Float = iconBack.cardElevation
+    private val backColor: Int = iconBack.cardBackgroundColor.defaultColor
 
     init {
         view.setOnClickListener { clickListener?.invoke() }
@@ -72,6 +84,18 @@ class TopicItemViewHolder(view: View) : BaseItemViewHolder(view), TopicItemView 
                 imageView.setImageResource(R.drawable.app_placeholder)
             }
         }
+    }
+
+    override fun showIconBack() {
+        iconBack.radius = backRadius
+        iconBack.cardElevation = backElevation
+        iconBack.setCardBackgroundColor(backColor)
+    }
+
+    override fun hideIconBack() {
+        iconBack.radius = 0f
+        iconBack.cardElevation = 0f
+        iconBack.setCardBackgroundColor(Color.TRANSPARENT)
     }
 
     override fun showProgress() {

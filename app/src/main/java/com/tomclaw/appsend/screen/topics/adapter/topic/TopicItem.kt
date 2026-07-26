@@ -13,6 +13,7 @@ data class TopicItem(
     val title: String,
     val description: String?,
     val packageName: String?,
+    val isAppTopic: Boolean,
     val isPinned: Boolean,
     val hasUnread: Boolean,
     val lastMsgId: Int,

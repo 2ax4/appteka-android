@@ -11,17 +11,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/selectableItemBackground"
+        android:clipToPadding="false"
         android:foreground="?android:attr/selectableItemBackground"
         android:orientation="horizontal"
         android:padding="6dp">
 
-        <ImageView
-            android:id="@+id/topic_icon"
+        <!-- App topics get the same icon backdrop apps have elsewhere,
+             scaled from the 56dp app row down to the 42dp topic icon. -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/topic_icon_back"
             android:layout_width="42dp"
             android:layout_height="42dp"
             android:layout_gravity="center_vertical"
-            android:contentDescription="@string/app_icon"
-            tools:src="@drawable/ic_topic_common_qna" />
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <ImageView
+                android:id="@+id/topic_icon"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:contentDescription="@string/app_icon"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/ic_topic_common_qna" />
+
+        </androidx.cardview.widget.CardView>
 
         <LinearLayout
             android:layout_width="0dp"

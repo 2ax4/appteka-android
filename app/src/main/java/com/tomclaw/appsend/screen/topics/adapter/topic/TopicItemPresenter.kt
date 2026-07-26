@@ -17,6 +17,11 @@ class TopicItemPresenter(
         }
 
         view.setIcon(item.icon)
+        if (item.isAppTopic) {
+            view.showIconBack()
+        } else {
+            view.hideIconBack()
+        }
         view.setTitle(item.title)
         view.setMessageText(item.lastMsgText)
         item.lastMsgUserIcon?.let(view::setMessageAvatar)
