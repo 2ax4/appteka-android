@@ -187,18 +187,26 @@ class DetailsConverterImpl(
             installedVersionCode = installedVersionCode,
             downloadState = downloadState,
         )
-        if (details.meta?.screenshots != null && details.meta.screenshots.isNotEmpty()) {
-            items += ScreenshotsItem(
-                id = id++,
-                items = details.meta.screenshots.map {
-                    ScreenshotItem(
-                        id = it.scrId.hashCode().toLong(),
-                        original = it.original.toUri(),
-                        preview = it.preview.toUri(),
-                        width = it.width,
-                        height = it.height,
-                    )
+        val whatsNewText = details.meta?.whatsNew
+            ?.takeIf { it.isNotBlank() }
+            ?.let {
+                when (translationState) {
+                    TRANSLATION_TRANSLATED -> translationData?.whatsNew
+                        ?.takeIf { text -> text.isNotBlank() } ?: it
+
+                    else -> it
                 }
+            }
+            ?.trim()
+        val hasUpdate = installedVersionCode != NOT_INSTALLED &&
+                installedVersionCode < details.info.versionCode
+        // Right under the install button while an update is pending: that's
+        // what the user came for. Otherwise it waits below, next to the
+        // description.
+        if (whatsNewText != null && hasUpdate) {
+            items += WhatsNewItem(
+                id = id++,
+                text = whatsNewText,
             )
         }
         if (details.userRating != null) {
@@ -223,6 +231,23 @@ class DetailsConverterImpl(
             )
         }
 
+        // Below the rate / discuss actions: someone who already has the app
+        // installed came to act, not to look through the screenshots again.
+        if (details.meta?.screenshots != null && details.meta.screenshots.isNotEmpty()) {
+            items += ScreenshotsItem(
+                id = id++,
+                items = details.meta.screenshots.map {
+                    ScreenshotItem(
+                        id = it.scrId.hashCode().toLong(),
+                        original = it.original.toUri(),
+                        preview = it.preview.toUri(),
+                        width = it.width,
+                        height = it.height,
+                    )
+                }
+            )
+        }
+
         convertAINoteItem(
             id = id++,
             appId = details.info.appId,
@@ -234,15 +259,10 @@ class DetailsConverterImpl(
             fileStatus = details.info.fileStatus,
         )?.let { items += it }
 
-        if (!details.meta?.whatsNew.isNullOrBlank()) {
-            val whatsNewText = when (translationState) {
-                TRANSLATION_TRANSLATED -> translationData?.whatsNew?.takeIf { it.isNotBlank() }
-                    ?: details.meta?.whatsNew
-                else -> details.meta?.whatsNew
-            }
+        if (whatsNewText != null && !hasUpdate) {
             items += WhatsNewItem(
                 id = id++,
-                text = whatsNewText.orEmpty().trim(),
+                text = whatsNewText,
             )
         }
         val descriptionText = when (translationState) {
@@ -266,6 +286,23 @@ class DetailsConverterImpl(
             items += TagsItem(
                 id = id++,
                 tags = tags,
+            )
+        }
+        // High on the screen: the reviews list below is unbounded, and a
+        // shelf under it would rarely be reached.
+        val similar = details.similar.orEmpty()
+        if (similar.isNotEmpty()) {
+            items += SimilarItem(
+                id = id++,
+                items = similar.map { entity ->
+                    AppItem(
+                        id = id++,
+                        appId = entity.appId,
+                        icon = entity.icon,
+                        title = entity.title,
+                        rating = entity.rating,
+                    )
+                },
             )
         }
         if (!details.info.abi.isNullOrEmpty()) {
@@ -292,24 +329,6 @@ class DetailsConverterImpl(
                 rateCount = details.meta.rateCount,
                 rating = details.meta.rating,
                 scores = details.meta.scores
-            )
-        }
-
-        // Before the reviews rather than after them: the reviews list is
-        // unbounded, and a shelf below it would rarely be reached.
-        val similar = details.similar.orEmpty()
-        if (similar.isNotEmpty()) {
-            items += SimilarItem(
-                id = id++,
-                items = similar.map { entity ->
-                    AppItem(
-                        id = id++,
-                        appId = entity.appId,
-                        icon = entity.icon,
-                        title = entity.title,
-                        rating = entity.rating,
-                    )
-                },
             )
         }
 
