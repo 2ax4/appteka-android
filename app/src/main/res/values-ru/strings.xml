@@ -426,6 +426,7 @@
     <string name="posts">Посты</string>
     <string name="subscribers">Подписчики</string>
     <string name="publishers">Подписки</string>
+    <string name="connections">Связи</string>
     <string name="subscribe">Подписаться</string>
     <string name="unsubscribe">Отписаться</string>
     <string name="unable_to_change_subscription_state">Ошибка изменения статуса полписки</string>

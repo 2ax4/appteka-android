@@ -17,10 +17,11 @@ interface SubscriptionsView {
 
     /**
      * Whose subscriptions these are. The tabs already say which kind,
-     * so the name is the only thing left worth putting in the bar —
-     * and it may be missing, in which case the bar stays untitled.
+     * so the name is the only thing left worth putting in the bar.
+     * Nameless users, and the server-driven route that carries no name,
+     * fall back to the generic screen title.
      */
-    fun setTitle(title: String?)
+    fun setTitle(userName: String?)
 
     fun setSelectedPage(index: Int)
 
@@ -73,8 +74,9 @@ class SubscriptionsViewImpl(
         adapter.notifyDataSetChanged()
     }
 
-    override fun setTitle(title: String?) {
-        toolbar.title = title
+    override fun setTitle(userName: String?) {
+        toolbar.title = userName?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.connections)
     }
 
     override fun setSelectedPage(index: Int) {
