@@ -23,7 +23,9 @@ class RatingItemPresenter(
         val date: String = dateFormatter.format(item.time)
         view.setDate(date)
         view.setComment(item.text)
-        view.setOnClickListener { listener.onScoresClick() }
+        // Same as tapping a review on the ratings screen: the row is about
+        // its author, so it opens their profile.
+        view.setOnClickListener { listener.onProfileClick(item.user.id) }
     }
 
 }
