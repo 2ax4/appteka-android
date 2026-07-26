@@ -32,6 +32,7 @@ class RatingItemPresenter(
         val date: String = dateFormatter.format(item.time)
         view.setDate(date)
         view.setComment(item.text)
+        if (item.hasProgress) view.showProgress() else view.hideProgress()
         if (item.showRatingMenu) {
             view.showRatingMenu()
         } else {

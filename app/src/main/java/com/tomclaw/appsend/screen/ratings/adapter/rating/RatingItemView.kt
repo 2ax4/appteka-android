@@ -38,6 +38,10 @@ interface RatingItemView : ItemView {
 
     fun hideRatingMenu()
 
+    fun showProgress()
+
+    fun hideProgress()
+
     fun setOnRatingClickListener(listener: (() -> Unit)?)
 
     fun setOnDeleteClickListener(listener: (() -> Unit)?)
@@ -56,6 +60,7 @@ class RatingItemViewHolder(
     private val dateView: TextView = view.findViewById(R.id.date_view)
     private val commentView: TextView = view.findViewById(R.id.comment_view)
     private val menuView: View = view.findViewById(R.id.rating_menu)
+    private val progress: View = view.findViewById(R.id.item_progress)
 
     private var ratingClickListener: (() -> Unit)? = null
     private var deleteClickListener: (() -> Unit)? = null
@@ -97,6 +102,14 @@ class RatingItemViewHolder(
 
     override fun hideRatingMenu() {
         menuView.hide()
+    }
+
+    override fun showProgress() {
+        progress.show()
+    }
+
+    override fun hideProgress() {
+        progress.hide()
     }
 
     private fun showRatingDialog() {
