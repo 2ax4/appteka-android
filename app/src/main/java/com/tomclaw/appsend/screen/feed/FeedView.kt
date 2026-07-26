@@ -2,6 +2,7 @@ package com.tomclaw.appsend.screen.feed
 
 import android.annotation.SuppressLint
 import android.view.View
+import android.view.ViewTreeObserver.OnPreDrawListener
 import android.widget.TextView
 import android.widget.ViewFlipper
 import androidx.annotation.DrawableRes
@@ -42,6 +43,13 @@ interface FeedView {
     fun contentUpdated(position: Int)
 
     fun rangeInserted(position: Int, count: Int)
+
+    /**
+     * Insert [count] items on top of the list and re-bind the boundary
+     * item now sitting at [position], keeping every item already on
+     * screen exactly where the user sees it.
+     */
+    fun rangePrepended(count: Int, position: Int)
 
     fun rangeDeleted(position: Int, count: Int)
 
@@ -89,6 +97,8 @@ class FeedViewImpl(
     private val error: TextView = view.findViewById(R.id.error_text)
     private val retryButton: View = view.findViewById(R.id.button_retry)
 
+    private val layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+
     private val navigationRelay = PublishRelay.create<Unit>()
     private val retryRelay = PublishRelay.create<Unit>()
     private val scrollIdleRelay = PublishRelay.create<Int>()
@@ -97,8 +107,6 @@ class FeedViewImpl(
         toolbar.setNavigationOnClickListener { navigationRelay.accept(Unit) }
         toolbar.setTitle(R.string.user_feed)
 
-        val orientation = RecyclerView.VERTICAL
-        val layoutManager = LinearLayoutManager(view.context, orientation, false)
         adapter.setHasStableIds(true)
         recycler.adapter = adapter
         recycler.layoutManager = layoutManager
@@ -172,6 +180,53 @@ class FeedViewImpl(
 
     override fun rangeInserted(position: Int, count: Int) {
         adapter.notifyItemRangeInserted(position, count)
+    }
+
+    /**
+     * The boundary item shrinks as its spinner goes away, and by default
+     * the layout manager keeps that item's top edge, which drags the whole
+     * screen up and pushes the fresh posts out of the viewport. Pin the
+     * item right below the boundary instead: its size doesn't change, so
+     * nothing visible moves and the space the spinner leaves behind is
+     * taken by the tail of the prepended posts.
+     */
+    override fun rangePrepended(count: Int, position: Int) {
+        if (count == 0) {
+            adapter.notifyItemChanged(position)
+            return
+        }
+        val anchor = position + 1
+        // Offsets of a pending scroll are counted from the padding, unlike
+        // the decorated bounds of an already laid out child.
+        val anchorOffset = layoutManager.findViewByPosition(0)
+            ?.let { layoutManager.getDecoratedBottom(it) - layoutManager.paddingTop }
+            ?.takeIf { anchor < adapter.itemCount }
+
+        // Everything on screen stays put, so item animations would have
+        // nothing to show and would only fight the pinned position.
+        withoutItemAnimations {
+            adapter.notifyItemRangeInserted(0, count)
+            adapter.notifyItemChanged(position)
+            anchorOffset?.let { layoutManager.scrollToPositionWithOffset(anchor, it) }
+        }
+    }
+
+    /** Runs [block] unanimated, restoring the animator after its layout pass. */
+    private fun withoutItemAnimations(block: () -> Unit) {
+        val animator = recycler.itemAnimator
+        if (animator == null) {
+            block()
+            return
+        }
+        recycler.itemAnimator = null
+        block()
+        recycler.viewTreeObserver.addOnPreDrawListener(object : OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                recycler.viewTreeObserver.removeOnPreDrawListener(this)
+                recycler.itemAnimator = animator
+                return true
+            }
+        })
     }
 
     override fun rangeDeleted(position: Int, count: Int) {

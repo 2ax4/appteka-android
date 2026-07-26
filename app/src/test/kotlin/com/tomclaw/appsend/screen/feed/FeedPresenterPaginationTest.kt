@@ -104,8 +104,11 @@ class FeedPresenterPaginationTest {
         interactor.respond(posts(1, 2))
 
         assertEquals(listOf(1L, 2L, 3L, 4L), adapter.items.map { it.id })
-        assertEquals(listOf(2), view.changedPositions)
-        assertEquals(listOf(0 to 2), view.insertedRanges)
+        // Insert and re-bind go together, otherwise the list would jump
+        // between them and hide what has just been loaded.
+        assertEquals(listOf(2 to 2), view.prependedRanges)
+        assertEquals(emptyList<Int>(), view.changedPositions)
+        assertEquals(emptyList<Pair<Int, Int>>(), view.insertedRanges)
         assertNull(adapter.items[2].progress)
         assertTrue(adapter.items.first().hasMore)
     }
@@ -279,11 +282,13 @@ private class FakeFeedView : FeedView {
         private set
     val changedPositions = mutableListOf<Int>()
     val insertedRanges = mutableListOf<Pair<Int, Int>>()
+    val prependedRanges = mutableListOf<Pair<Int, Int>>()
 
     fun reset() {
         progressShown = 0
         changedPositions.clear()
         insertedRanges.clear()
+        prependedRanges.clear()
     }
 
     override fun showProgress() {
@@ -304,6 +309,10 @@ private class FakeFeedView : FeedView {
 
     override fun rangeInserted(position: Int, count: Int) {
         insertedRanges += position to count
+    }
+
+    override fun rangePrepended(count: Int, position: Int) {
+        prependedRanges += count to position
     }
 
     override fun showContent() = Unit

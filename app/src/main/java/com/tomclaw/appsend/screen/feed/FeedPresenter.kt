@@ -190,6 +190,7 @@ class FeedPresenterImpl(
                         offsetId = offsetId.takeIf { initial },
                         inserted = loaded.inserted,
                         changed = loaded.changed,
+                        prepended = loaded.prepended,
                     )
                 },
                 { ex -> onLoadMoreError(ex, direction, initial) }
@@ -224,6 +225,7 @@ class FeedPresenterImpl(
             Loaded(
                 inserted = Range(position = 0, count = newItems.size),
                 changed = newItems.size,
+                prepended = true,
             )
         } else {
             this.items = currentItems.plus(newItems)
@@ -244,6 +246,7 @@ class FeedPresenterImpl(
         inserted: Range? = null,
         deleted: Range? = null,
         changed: Int? = null,
+        prepended: Boolean = false,
     ) {
         val items = this.items
 
@@ -258,17 +261,24 @@ class FeedPresenterImpl(
         view?.let { view ->
             view.showContent()
 
-            inserted?.let { range ->
-                view.rangeInserted(range.position, range.count)
-            }
-            deleted?.let { range ->
-                view.rangeDeleted(range.position, range.count)
-            }
-            changed?.let { position ->
-                view.contentUpdated(position)
-            }
-            if (inserted == null && deleted == null && changed == null) {
-                view.contentUpdated()
+            // Growing the list upwards has to reach the view as a single
+            // operation: the insert and the boundary re-bind together decide
+            // where the list ends up scrolled.
+            if (prepended && inserted != null && changed != null) {
+                view.rangePrepended(inserted.count, changed)
+            } else {
+                inserted?.let { range ->
+                    view.rangeInserted(range.position, range.count)
+                }
+                deleted?.let { range ->
+                    view.rangeDeleted(range.position, range.count)
+                }
+                changed?.let { position ->
+                    view.contentUpdated(position)
+                }
+                if (inserted == null && deleted == null && changed == null) {
+                    view.contentUpdated()
+                }
             }
 
             offsetId?.let { offsetId ->
@@ -556,6 +566,7 @@ class FeedPresenterImpl(
     private data class Loaded(
         val inserted: Range,
         val changed: Int? = null,
+        val prepended: Boolean = false,
     )
 
 }
