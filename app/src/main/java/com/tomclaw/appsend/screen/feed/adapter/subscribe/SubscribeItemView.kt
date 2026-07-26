@@ -18,6 +18,8 @@ import com.tomclaw.appsend.util.show
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.tomclaw.appsend.screen.feed.adapter.ItemPaginator
+import com.tomclaw.appsend.screen.feed.adapter.ProgressSide
 import com.tomclaw.appsend.screen.feed.adapter.ReactionsAdapter
 import com.tomclaw.appsend.screen.feed.api.Reaction
 
@@ -37,9 +39,7 @@ interface SubscribeItemView : ItemView {
 
     fun setTime(time: String)
 
-    fun showProgress()
-
-    fun hideProgress()
+    fun setProgress(side: ProgressSide?)
 
     fun showMenu()
 
@@ -72,6 +72,7 @@ class SubscribeItemViewHolder(
     private val publisherContainer: View = view.findViewById(R.id.uploader_container)
     private val reactions: RecyclerView = view.findViewById(R.id.reactions)
     private val menu: View = view.findViewById(R.id.post_menu)
+    private val paginator = ItemPaginator(view)
 
     private var postClickListener: (() -> Unit)? = null
     private var subscribedClickListener: (() -> Unit)? = null
@@ -121,10 +122,8 @@ class SubscribeItemViewHolder(
         this.time.bind(time)
     }
 
-    override fun showProgress() {
-    }
-
-    override fun hideProgress() {
+    override fun setProgress(side: ProgressSide?) {
+        paginator.bind(side)
     }
 
     override fun showMenu() {

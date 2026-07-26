@@ -7,6 +7,7 @@ import com.tomclaw.appsend.util.adapter.Item
 import com.tomclaw.appsend.dto.Screenshot
 import com.tomclaw.appsend.screen.feed.adapter.FeedItem
 import com.tomclaw.appsend.screen.feed.adapter.ItemListener
+import com.tomclaw.appsend.screen.feed.adapter.ProgressSide
 import com.tomclaw.appsend.screen.feed.api.PostEntity
 import com.tomclaw.appsend.screen.gallery.GalleryItem
 import com.tomclaw.appsend.user.api.UserBrief
@@ -74,7 +75,7 @@ class FeedPresenterImpl(
     private val subscriptions = CompositeDisposable()
 
     private var items: List<FeedItem>? =
-        state?.getParcelableArrayListCompat(KEY_APPS, FeedItem::class.java)
+        state?.getParcelableArrayListCompat(KEY_APPS, FeedItem::class.java)?.rearmPagination()
     private var error: Int = state?.getInt(KEY_ERROR) ?: ERROR_NO
 
     override fun attachView(view: FeedView) {
@@ -175,24 +176,27 @@ class FeedPresenterImpl(
     }
 
     private fun loadFeed(offsetId: Int, direction: FeedDirection = FeedDirection.Both) {
-        val items = items
-        val scroll = items.isNullOrEmpty()
+        val initial = items.isNullOrEmpty()
         subscriptions += interactor.listFeed(userId, offsetId, direction)
             .observeOn(schedulers.mainThread())
-            .doOnSubscribe { view?.showProgress() }
+            // Pagination draws its own spinner right in the boundary item,
+            // so the full-screen overlay is for the very first page only.
+            .doOnSubscribe { if (initial) view?.showProgress() }
             .retryWhenNonAuthErrors()
             .subscribe(
-                {
+                { result ->
+                    val loaded = onLoaded(result.posts, direction)
                     bindItems(
-                        offsetId = offsetId.takeIf { scroll },
-                        inserted = onLoaded(it.posts, direction)
+                        offsetId = offsetId.takeIf { initial },
+                        inserted = loaded.inserted,
+                        changed = loaded.changed,
                     )
                 },
-                { onLoadMoreError(it) }
+                { ex -> onLoadMoreError(ex, direction, initial) }
             )
     }
 
-    private fun onLoaded(posts: List<PostEntity>, direction: FeedDirection): Range {
+    private fun onLoaded(posts: List<PostEntity>, direction: FeedDirection): Loaded {
         error = ERROR_NO
         val newItems = posts
             .filter { post ->
@@ -202,26 +206,32 @@ class FeedPresenterImpl(
             .toList()
             .apply { if (isNotEmpty()) applyWithDirection(direction) { hasMore = true } }
 
-        var rangeInserted = Range(position = 0, count = newItems.size)
+        val currentItems = this.items.orEmpty()
 
-        this.items = this.items
-            ?.apply { if (isNotEmpty()) applyWithDirection(direction) { hasProgress = false } }
-            ?.let { currentItems ->
-                when (direction) {
-                    FeedDirection.Before -> {
-                        rangeInserted = Range(position = 0, count = newItems.size)
-                        newItems.plus(currentItems)
-                    }
+        // A both-ways load replaces the whole dataset, so there is
+        // nothing to merge and no spinner left behind.
+        if (currentItems.isEmpty() || direction == FeedDirection.Both) {
+            this.items = newItems
+            return Loaded(inserted = Range(position = 0, count = newItems.size))
+        }
 
-                    FeedDirection.After -> {
-                        rangeInserted = Range(position = currentItems.size, count = newItems.size)
-                        currentItems.plus(newItems)
-                    }
+        currentItems.applyWithDirection(direction) { progress = null }
 
-                    FeedDirection.Both -> newItems
-                }
-            } ?: newItems
-        return rangeInserted
+        // The item that held the spinner keeps its data, so an insert
+        // alone won't re-bind it — report it as changed separately.
+        return if (direction == FeedDirection.Before) {
+            this.items = newItems.plus(currentItems)
+            Loaded(
+                inserted = Range(position = 0, count = newItems.size),
+                changed = newItems.size,
+            )
+        } else {
+            this.items = currentItems.plus(newItems)
+            Loaded(
+                inserted = Range(position = currentItems.size, count = newItems.size),
+                changed = currentItems.lastIndex,
+            )
+        }
     }
 
     private fun <T> List<T>.applyWithDirection(direction: FeedDirection, fn: T.() -> Unit) {
@@ -233,6 +243,7 @@ class FeedPresenterImpl(
         offsetId: Int? = null,
         inserted: Range? = null,
         deleted: Range? = null,
+        changed: Int? = null,
     ) {
         val items = this.items
 
@@ -253,7 +264,10 @@ class FeedPresenterImpl(
             deleted?.let { range ->
                 view.rangeDeleted(range.position, range.count)
             }
-            if (inserted == null && deleted == null) {
+            changed?.let { position ->
+                view.contentUpdated(position)
+            }
+            if (inserted == null && deleted == null && changed == null) {
                 view.contentUpdated()
             }
 
@@ -279,13 +293,29 @@ class FeedPresenterImpl(
         }
     }
 
-    private fun onLoadMoreError(ex: Throwable) {
-        items?.last()
-            ?.apply {
-                hasProgress = false
-                hasMore = false
-            }
-        bindItems()
+    /**
+     * A page request failed for good (only 4xx gets here, everything else
+     * is retried). Drop the spinner at the end the request was made for and
+     * stop paginating that way — the other end must stay untouched.
+     */
+    private fun onLoadMoreError(ex: Throwable, direction: FeedDirection, initial: Boolean) {
+        if (initial) {
+            ex.filterUnauthorizedErrors(
+                authError = { onLoadingError(ERROR_UNAUTHORIZED) },
+                other = { onLoadingError(ERROR_OTHER) },
+            )
+            return
+        }
+        val items = this.items.orEmpty()
+        val position = when (direction) {
+            FeedDirection.Before -> 0
+            FeedDirection.After -> items.lastIndex
+            FeedDirection.Both -> return
+        }
+        val item = items.getOrNull(position) ?: return
+        item.progress = null
+        item.hasMore = false
+        bindItems(changed = position)
     }
 
     override fun onUpdate() {
@@ -322,6 +352,7 @@ class FeedPresenterImpl(
 
             else -> return
         }
+        sub.progress = direction.progressSide
         loadFeed(offsetId = sub.id.toInt(), direction)
     }
 
@@ -522,6 +553,31 @@ class FeedPresenterImpl(
         val count: Int,
     )
 
+    private data class Loaded(
+        val inserted: Range,
+        val changed: Int? = null,
+    )
+
+}
+
+/** Side of the list the pagination spinner belongs to. */
+private val FeedDirection.progressSide: ProgressSide?
+    get() = when (this) {
+        FeedDirection.Before -> ProgressSide.Top
+        FeedDirection.After -> ProgressSide.Bottom
+        FeedDirection.Both -> null
+    }
+
+/**
+ * A request in flight doesn't survive a state save, so a restored spinner
+ * would never be hidden. Re-arm the paginator instead: the item asks for
+ * its page again as soon as it's bound.
+ */
+internal fun List<FeedItem>.rearmPagination(): List<FeedItem> = onEach { item ->
+    if (item.progress != null) {
+        item.progress = null
+        item.hasMore = true
+    }
 }
 
 private const val READ_DELAY_MILLIS = 200L

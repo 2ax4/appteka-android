@@ -13,6 +13,8 @@ import com.tomclaw.appsend.R
 import com.tomclaw.appsend.dto.Screenshot
 import com.tomclaw.appsend.dto.BadgeMark
 import com.tomclaw.appsend.dto.UserIcon
+import com.tomclaw.appsend.screen.feed.adapter.ItemPaginator
+import com.tomclaw.appsend.screen.feed.adapter.ProgressSide
 import com.tomclaw.appsend.screen.feed.adapter.ReactionsAdapter
 import com.tomclaw.appsend.screen.feed.adapter.ScreenshotsAdapter
 import com.tomclaw.appsend.screen.feed.api.Reaction
@@ -45,9 +47,7 @@ interface FavoriteItemView : ItemView {
 
     fun setTime(time: String)
 
-    fun showProgress()
-
-    fun hideProgress()
+    fun setProgress(side: ProgressSide?)
 
     fun showMenu()
 
@@ -84,6 +84,7 @@ class FavoriteItemViewHolder(
     private val images: RecyclerView = view.findViewById(R.id.images)
     private val reactions: RecyclerView = view.findViewById(R.id.reactions)
     private val menu: View = view.findViewById(R.id.post_menu)
+    private val paginator = ItemPaginator(view)
 
     private var postClickListener: (() -> Unit)? = null
     private var appClickListener: (() -> Unit)? = null
@@ -165,10 +166,8 @@ class FavoriteItemViewHolder(
         this.time.bind(time)
     }
 
-    override fun showProgress() {
-    }
-
-    override fun hideProgress() {
+    override fun setProgress(side: ProgressSide?) {
+        paginator.bind(side)
     }
 
     override fun showMenu() {

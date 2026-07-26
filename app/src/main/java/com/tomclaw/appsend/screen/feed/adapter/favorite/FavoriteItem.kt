@@ -3,6 +3,7 @@ package com.tomclaw.appsend.screen.feed.adapter.favorite
 import com.tomclaw.appsend.categories.Category
 import com.tomclaw.appsend.dto.Screenshot
 import com.tomclaw.appsend.screen.feed.adapter.FeedItem
+import com.tomclaw.appsend.screen.feed.adapter.ProgressSide
 import com.tomclaw.appsend.screen.feed.api.Reaction
 import com.tomclaw.appsend.user.api.UserBrief
 import kotlinx.parcelize.Parcelize
@@ -30,7 +31,7 @@ data class FavoriteItem(
     override val actions: List<String>?,
     val reacts: List<Reaction>?,
     override var hasMore: Boolean = false,
-    override var hasProgress: Boolean = false,
+    override var progress: ProgressSide? = null,
 ) : FeedItem {
     
     override fun getReactions(): List<Reaction>? = reacts

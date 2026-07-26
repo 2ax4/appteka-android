@@ -17,7 +17,6 @@ class SubscribeItemPresenter(
         with(item) {
             if (hasMore) {
                 hasMore = false
-                hasProgress = true
                 listener.onLoadMore(this)
             }
         }
@@ -29,7 +28,7 @@ class SubscribeItemPresenter(
         view.setPublisherIcon(item.publisher.icon)
         view.setPublisherBadge(item.publisher.primaryBadge)
         view.setTime(resourceProvider.formatTime(item.time))
-        if (item.hasProgress) view.showProgress() else view.hideProgress()
+        view.setProgress(item.progress)
         if (!item.actions.isNullOrEmpty()) view.showMenu() else view.hideMenu()
         item.reacts.takeIf { !it.isNullOrEmpty() }
             ?.let { view.setReactions(it) }

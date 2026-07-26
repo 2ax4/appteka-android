@@ -16,7 +16,6 @@ class TextItemPresenter(
         with(item) {
             if (hasMore) {
                 hasMore = false
-                hasProgress = true
                 listener.onLoadMore(this)
             }
         }
@@ -32,7 +31,7 @@ class TextItemPresenter(
         item.screenshots.takeIf { it.isNotEmpty() }
             ?.let { view.setImages(item.screenshots) }
             ?: view.hideImage()
-        if (item.hasProgress) view.showProgress() else view.hideProgress()
+        view.setProgress(item.progress)
         if (!item.actions.isNullOrEmpty()) view.showMenu() else view.hideMenu()
         item.reacts.takeIf { !it.isNullOrEmpty() }
             ?.let { view.setReactions(it) }

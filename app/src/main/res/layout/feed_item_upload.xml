@@ -9,6 +9,16 @@
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
+    <com.google.android.material.loadingindicator.LoadingIndicator
+        android:id="@+id/progress_top"
+        style="@style/Widget.Material3.LoadingIndicator"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        tools:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/feed_card"
         android:layout_width="match_parent"
@@ -251,5 +261,15 @@
         android:orientation="horizontal"
         tools:itemCount="3"
         tools:listitem="@layout/feed_reaction_item" />
+
+    <com.google.android.material.loadingindicator.LoadingIndicator
+        android:id="@+id/progress_bottom"
+        style="@style/Widget.Material3.LoadingIndicator"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        tools:visibility="gone" />
 
 </LinearLayout>
