@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.ViewFlipper
+import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -49,7 +50,12 @@ interface SearchView {
 
     fun requestQueryFocus()
 
-    fun showSelectedTags(tags: List<String>)
+    /**
+     * The filter row next to the query: [selected] is what search is
+     * narrowed by, [suggestions] is what it could be narrowed by next,
+     * and [custom] is the typed text offered as a tag of its own.
+     */
+    fun showTags(selected: List<String>, suggestions: List<String>, custom: String?)
 
     fun showPopularTags(tags: List<String>)
 
@@ -60,6 +66,10 @@ interface SearchView {
     fun queryTextChanges(): Observable<String>
 
     fun tagRemoveClicks(): Observable<String>
+
+    fun tagSuggestionClicks(): Observable<String>
+
+    fun customTagClicks(): Observable<String>
 
     fun popularTagClicks(): Observable<String>
 
@@ -78,8 +88,8 @@ class SearchViewImpl(
     private val error: TextView = rootView.findViewById(R.id.error_text)
     private val retryButton: View = rootView.findViewById(R.id.button_retry)
     private val queryEdit: EditText = rootView.findViewById(R.id.query_edit)
-    private val selectedTagsScroll: View = rootView.findViewById(R.id.selected_tags_scroll)
-    private val selectedTags: ChipGroup = rootView.findViewById(R.id.selected_tags)
+    private val tagsScroll: View = rootView.findViewById(R.id.tags_scroll)
+    private val tagsGroup: ChipGroup = rootView.findViewById(R.id.tags)
     private val popularTagsTitle: View = rootView.findViewById(R.id.popular_tags_title)
     private val popularTags: ChipGroup = rootView.findViewById(R.id.popular_tags)
 
@@ -87,6 +97,8 @@ class SearchViewImpl(
     private val refreshRelay = PublishRelay.create<Unit>()
     private val queryTextRelay = PublishRelay.create<String>()
     private val tagRemoveRelay = PublishRelay.create<String>()
+    private val tagSuggestionRelay = PublishRelay.create<String>()
+    private val customTagRelay = PublishRelay.create<String>()
     private val popularTagRelay = PublishRelay.create<String>()
 
     init {
@@ -166,43 +178,44 @@ class SearchViewImpl(
         queryEdit.requestFocus()
     }
 
-    override fun showSelectedTags(tags: List<String>) {
-        selectedTagsScroll.isVisible = tags.isNotEmpty()
-        bindChips(selectedTags, tags, closeable = true) { tagRemoveRelay.accept(it) }
+    override fun showTags(selected: List<String>, suggestions: List<String>, custom: String?) {
+        tagsGroup.removeAllViews()
+        for (tag in selected) {
+            val chip = inflateChip(R.layout.search_selected_tag_chip, tagsGroup, tag)
+            chip.setOnCloseIconClickListener { tagRemoveRelay.accept(tag) }
+            tagsGroup.addView(chip)
+        }
+        for (tag in suggestions) {
+            val chip = inflateChip(R.layout.search_tag_chip, tagsGroup, tag)
+            chip.setOnClickListener { tagSuggestionRelay.accept(tag) }
+            tagsGroup.addView(chip)
+        }
+        if (custom != null) {
+            val label = context.getString(R.string.search_add_tag, custom)
+            val chip = inflateChip(R.layout.search_custom_tag_chip, tagsGroup, label)
+            chip.setOnClickListener { customTagRelay.accept(custom) }
+            tagsGroup.addView(chip)
+        }
+        tagsScroll.isVisible = tagsGroup.childCount > 0
     }
 
     override fun showPopularTags(tags: List<String>) {
         popularTagsTitle.isVisible = tags.isNotEmpty()
-        bindChips(popularTags, tags, closeable = false) { popularTagRelay.accept(it) }
+        popularTags.removeAllViews()
+        for (tag in tags) {
+            val chip = inflateChip(R.layout.search_tag_chip, popularTags, tag)
+            chip.setOnClickListener { popularTagRelay.accept(tag) }
+            popularTags.addView(chip)
+        }
     }
 
-    /**
-     * Fills a group with one chip per tag. Selected tags carry a close
-     * icon and report removals; suggestions report plain clicks — the
-     * only difference between the two rows.
-     */
-    private fun bindChips(
-        group: ChipGroup,
-        tags: List<String>,
-        closeable: Boolean,
-        onAction: (String) -> Unit,
-    ) {
-        group.removeAllViews()
-        val inflater = LayoutInflater.from(group.context)
-        for (tag in tags) {
-            val chip = inflater.inflate(R.layout.search_tag_chip, group, false) as Chip
-            chip.text = tag
-            chip.isCloseIconVisible = closeable
-            // Without this the invisible 48dp touch target pads every
-            // chip and the rows drift apart (see TagsItemView).
-            chip.setEnsureMinTouchTargetSize(false)
-            if (closeable) {
-                chip.setOnCloseIconClickListener { onAction(tag) }
-            } else {
-                chip.setOnClickListener { onAction(tag) }
-            }
-            group.addView(chip)
-        }
+    private fun inflateChip(@LayoutRes layout: Int, group: ChipGroup, text: String): Chip {
+        val chip = LayoutInflater.from(context).inflate(layout, group, false) as Chip
+        chip.text = text
+        // Without this the invisible 48dp touch target pads every
+        // chip and the rows drift apart (see TagsItemView).
+        chip.setEnsureMinTouchTargetSize(false)
+        return chip
     }
 
     override fun retryClicks(): Observable<Unit> = retryRelay
@@ -212,6 +225,10 @@ class SearchViewImpl(
     override fun queryTextChanges(): Observable<String> = queryTextRelay
 
     override fun tagRemoveClicks(): Observable<String> = tagRemoveRelay
+
+    override fun tagSuggestionClicks(): Observable<String> = tagSuggestionRelay
+
+    override fun customTagClicks(): Observable<String> = customTagRelay
 
     override fun popularTagClicks(): Observable<String> = popularTagRelay
 

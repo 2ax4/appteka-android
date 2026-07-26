@@ -44,11 +44,12 @@
 
         </androidx.appcompat.widget.Toolbar>
 
-        <!-- Active tag filters. Scrolls sideways instead of wrapping so
-             the list below never jumps by a row height as tags are
-             added. -->
+        <!-- Active tag filters, followed by the tags that could join
+             them: the row reads as "filtering by this, could also filter
+             by that". Scrolls sideways instead of wrapping so the list
+             below never jumps by a row height as tags are added. -->
         <HorizontalScrollView
-            android:id="@+id/selected_tags_scroll"
+            android:id="@+id/tags_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="12dp"
@@ -60,7 +61,7 @@
             tools:visibility="visible">
 
             <com.google.android.material.chip.ChipGroup
-                android:id="@+id/selected_tags"
+                android:id="@+id/tags"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipSpacingHorizontal="8dp"

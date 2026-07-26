@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Offers the typed text as a tag of its own. The suggestions next to it
+    are only the head of the catalog's vocabulary, so this is the way to
+    a tag nobody offered — hence an assist chip with an add icon rather
+    than one more suggestion.
+-->
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Material3.Chip.Assist"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:chipIcon="@drawable/ic_baseline_add_24"
+    app:chipIconTint="?attr/colorOnSurfaceVariant"
+    tools:text="Add tag “wifi”" />

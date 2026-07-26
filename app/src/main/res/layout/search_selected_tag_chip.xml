@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    One tag the search is currently filtered by. An input chip, because
+    that is what an applied criterion is in Material 3 — the close icon
+    drops it, and the body itself does nothing, so tapping a filter can
+    never be mistaken for changing it.
+
+    Filled rather than outlined: standing in the same row as the tags on
+    offer, an applied one has to be legible as applied at a glance, and a
+    container fill is how Material 3 marks a chosen chip.
+-->
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Material3.Chip.Input"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:checkable="false"
+    android:clickable="false"
+    android:textColor="?attr/colorOnSecondaryContainer"
+    app:chipBackgroundColor="?attr/colorSecondaryContainer"
+    app:chipStrokeWidth="0dp"
+    app:closeIconTint="?attr/colorOnSecondaryContainer"
+    app:closeIconVisible="true"
+    tools:text="file manager" />

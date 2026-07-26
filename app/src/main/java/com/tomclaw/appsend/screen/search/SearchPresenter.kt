@@ -13,6 +13,7 @@ import com.tomclaw.appsend.util.getParcelableArrayListCompat
 import com.tomclaw.appsend.util.retryWhenNonAuthErrors
 import dagger.Lazy
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.util.concurrent.TimeUnit
 
@@ -60,6 +61,7 @@ class SearchPresenterImpl(
     private var router: SearchPresenter.SearchRouter? = null
 
     private val subscriptions = CompositeDisposable()
+    private var searchDisposable: Disposable? = null
 
     private var items: List<AppItem>? =
         state?.getParcelableArrayListCompat(KEY_APPS, AppItem::class.java)
@@ -71,6 +73,7 @@ class SearchPresenterImpl(
 
     private var popularTags: List<String>? =
         state?.getStringArrayList(KEY_POPULAR_TAGS)
+    private var isLoadingPopularTags: Boolean = false
 
     private val hasCriteria: Boolean
         get() = query.isNotBlank() || tags.isNotEmpty()
@@ -103,17 +106,24 @@ class SearchPresenterImpl(
             tags = tags.filterNot { it == tag }
             onCriteriaChanged()
         }
+        subscriptions += view.tagSuggestionClicks().subscribe { tag ->
+            analytics.trackEvent("search-tag-suggestion")
+            addTag(tag)
+        }
+        subscriptions += view.customTagClicks().subscribe { tag ->
+            analytics.trackEvent("search-tag-custom")
+            addTag(tag)
+        }
         subscriptions += view.popularTagClicks().subscribe { tag ->
-            if (tags.contains(tag)) return@subscribe
-            tags = tags + tag
             analytics.trackEvent("search-popular-tag")
-            onCriteriaChanged()
+            addTag(tag)
         }
 
         if (query.isNotEmpty()) {
             view.setQueryText(query)
         }
-        view.showSelectedTags(tags)
+        bindTags()
+        loadPopularTags()
 
         when {
             isError -> onError()
@@ -124,6 +134,8 @@ class SearchPresenterImpl(
     }
 
     override fun detachView() {
+        searchDisposable?.dispose()
+        searchDisposable = null
         subscriptions.clear()
         this.view = null
     }
@@ -150,11 +162,69 @@ class SearchPresenterImpl(
         if (hasCriteria) performSearch() else showPlaceholder()
     }
 
+    /**
+     * A tag arrives the same way from wherever it was offered. The text
+     * it was picked out of has done its job by then, so it gives way to
+     * the tag: keeping both would narrow the search to apps that carry
+     * the tag *and* mention the word, which is not what picking a
+     * suggestion means.
+     */
+    private fun addTag(tag: String) {
+        if (tags.any { it.equals(tag, ignoreCase = true) }) return
+        tags = tags + tag
+        if (query.isNotEmpty()) {
+            query = ""
+            view?.setQueryText("")
+        }
+        onCriteriaChanged()
+    }
+
     /** The one funnel: whatever changed the criteria, this decides what happens next. */
     private fun onCriteriaChanged() {
-        view?.showSelectedTags(tags)
+        bindTags()
         if (hasCriteria) performSearch() else showPlaceholder()
     }
+
+    /**
+     * The filter row and the placeholder's tag cloud say the same two
+     * things — what is applied, and what the catalog offers — so they
+     * are decided in one place.
+     */
+    private fun bindTags() {
+        val view = this.view ?: return
+        val available = popularTags.orEmpty().filterNot { isSelected(it) }
+        val text = normalizeTag(query)
+        val suggestions = when {
+            // On the placeholder the cloud below already offers these.
+            !hasCriteria -> emptyList()
+            text.isEmpty() -> available
+            else -> available
+                .filter { it.contains(text, ignoreCase = true) }
+                // A tag the text starts is a likelier match than one it
+                // merely occurs in; popularity orders the rest.
+                .sortedBy { if (it.startsWith(text, ignoreCase = true)) 0 else 1 }
+        }.take(SUGGESTIONS_COUNT)
+        // Suggestions are only the head of the vocabulary, so text that
+        // matches nothing known is still worth offering as a tag.
+        val custom = text.takeIf { it.isNotEmpty() && !isKnownTag(it) }
+        view.showTags(selected = tags, suggestions = suggestions, custom = custom)
+        view.showPopularTags(available)
+    }
+
+    private fun isSelected(tag: String): Boolean =
+        tags.any { it.equals(tag, ignoreCase = true) }
+
+    /** Applied or on offer — either way, not a tag to invent. */
+    private fun isKnownTag(tag: String): Boolean =
+        isSelected(tag) || popularTags.orEmpty().any { it.equals(tag, ignoreCase = true) }
+
+    /**
+     * Tags reach the API comma-separated and in lower case, so that is
+     * the shape a hand-typed one is offered in — commas and stray
+     * spacing would otherwise arrive as a tag nothing can carry.
+     */
+    private fun normalizeTag(raw: String): String =
+        raw.replace(TAG_SEPARATORS, " ").trim().lowercase()
 
     private fun performSearch() {
         if (!hasCriteria) {
@@ -164,7 +234,11 @@ class SearchPresenterImpl(
 
         items = null
 
-        subscriptions += searchInteractor.searchApps(query.trim(), tags)
+        // Criteria now change one tag at a time, so a search can well
+        // begin while the previous one is still in the air. Only the
+        // last one asked for is the one anybody is waiting for.
+        searchDisposable?.dispose()
+        searchDisposable = searchInteractor.searchApps(query.trim(), tags)
             .observeOn(schedulers.mainThread())
             .doOnSubscribe { if (view?.isPullRefreshing() == false) view?.showProgress() }
             .subscribe(
@@ -176,7 +250,10 @@ class SearchPresenterImpl(
     private fun loadMore(offset: Int) {
         if (!hasCriteria) return
 
-        subscriptions += searchInteractor.searchApps(query.trim(), tags, offset)
+        // Same disposable as the search itself: a page belongs to the
+        // criteria it was asked for, and outlives neither them nor it.
+        searchDisposable?.dispose()
+        searchDisposable = searchInteractor.searchApps(query.trim(), tags, offset)
             .observeOn(schedulers.mainThread())
             .retryWhenNonAuthErrors()
             .subscribe(
@@ -233,23 +310,29 @@ class SearchPresenterImpl(
     private fun showPlaceholder() {
         items = null
         view?.showPlaceholder()
+        loadPopularTags()
+    }
 
-        val loaded = popularTags
-        if (loaded != null) {
-            view?.showPopularTags(loaded.filterNot { tags.contains(it) })
-            return
-        }
+    /**
+     * The catalog's vocabulary, fetched once. It feeds the suggestions
+     * next to the query as much as the placeholder, so it is not tied to
+     * either of them being on screen.
+     */
+    private fun loadPopularTags() {
+        if (popularTags != null || isLoadingPopularTags) return
+        isLoadingPopularTags = true
         subscriptions += searchInteractor.loadPopularTags()
             .observeOn(schedulers.mainThread())
+            .doFinally { isLoadingPopularTags = false }
             .subscribe(
                 { loadedTags ->
                     popularTags = loadedTags
-                    view?.showPopularTags(loadedTags.filterNot { tags.contains(it) })
+                    bindTags()
                 },
                 {
                     // Suggestions are a convenience; failing to load them
-                    // leaves a plain placeholder rather than an error.
-                    view?.showPopularTags(emptyList())
+                    // leaves a plain placeholder rather than an error,
+                    // and hand-typed tags still work without them.
                 }
             )
     }
@@ -277,3 +360,10 @@ private const val KEY_QUERY = "query"
 private const val KEY_TAGS = "tags"
 private const val KEY_POPULAR_TAGS = "popular_tags"
 private const val DEBOUNCE_DELAY_MS = 500L
+
+// The row next to the query scrolls, but it is still a row: past a
+// handful of suggestions nobody reads them, they just get in the way of
+// the tags already applied.
+private const val SUGGESTIONS_COUNT = 8
+
+private val TAG_SEPARATORS = Regex("[,\\s]+")

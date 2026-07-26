@@ -331,6 +331,7 @@
     <string name="ai_review_error">Не удалось запросить ИИ</string>
     <string name="tags_block_title">Теги</string>
     <string name="popular_tags_title">Популярные теги</string>
+    <string name="search_add_tag">Тег «%1$s»</string>
     <string name="search_hint">Поиск по названию, пакету или разработчику</string>
     <string name="similar_apps_title">Похожие приложения</string>
     <string name="security_scanning_short">Проверка</string>
