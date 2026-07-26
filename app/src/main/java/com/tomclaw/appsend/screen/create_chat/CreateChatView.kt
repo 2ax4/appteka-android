@@ -13,12 +13,13 @@ import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.core.permissions.Capability
 import com.tomclaw.appsend.core.permissions.CapabilityHintResolver
-import com.tomclaw.imageloader.util.fetch
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.clicks
 import com.tomclaw.appsend.util.disable
 import com.tomclaw.appsend.util.enable
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
 import com.tomclaw.appsend.util.showWithAlphaAnimation
+import com.tomclaw.imageloader.util.fetch
 import io.reactivex.rxjava3.core.Observable
 
 interface CreateChatView {
@@ -62,9 +63,9 @@ interface CreateChatView {
 
 class CreateChatViewImpl(view: View) : CreateChatView {
 
+    private val scrollView: View = view.findViewById(R.id.scroll_view)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
     private val overlayProgress: View = view.findViewById(R.id.overlay_progress)
-    private val rootView: View = view.findViewById(R.id.root_view)
     private val avatarContainer: MaterialCardView = view.findViewById(R.id.avatar_container)
     private val avatar: ImageView = view.findViewById(R.id.avatar)
     private val avatarPlaceholder: View = view.findViewById(R.id.avatar_placeholder)
@@ -89,6 +90,10 @@ class CreateChatViewImpl(view: View) : CreateChatView {
             descriptionRelay.accept(text?.toString().orEmpty())
         }
         submitButton.clicks(submitRelay)
+
+        // A CoordinatorLayout root dispatches insets instead of
+        // padding itself, so the scroller takes the bottom one.
+        scrollView.applyBottomInsets()
     }
 
     override fun setTitle(title: String) {
@@ -129,16 +134,16 @@ class CreateChatViewImpl(view: View) : CreateChatView {
     }
 
     override fun showError(message: String) {
-        Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(scrollView, message, Snackbar.LENGTH_LONG).show()
     }
 
     override fun showCapabilityDenied(capability: Capability) {
-        val text = CapabilityHintResolver(rootView.resources).resolveText(capability)
-        Snackbar.make(rootView, text, Snackbar.LENGTH_LONG).show()
+        val text = CapabilityHintResolver(scrollView.resources).resolveText(capability)
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_LONG).show()
     }
 
     override fun showValidationError(message: String) {
-        Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(scrollView, message, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun navigationClicks(): Observable<Unit> = navigationRelay

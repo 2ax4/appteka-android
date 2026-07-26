@@ -9,6 +9,7 @@ import androidx.appcompat.widget.Toolbar
 import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
 import com.tomclaw.appsend.util.showWithAlphaAnimation
 import io.reactivex.rxjava3.core.Observable
@@ -37,7 +38,7 @@ interface RequestCodeView {
 
 class RequestCodeViewImpl(private val view: View) : RequestCodeView {
 
-    private val rootView: View = view.findViewById(R.id.root_view)
+    private val scrollView: View = view.findViewById(R.id.scroll_view)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
     private val email: EditText = view.findViewById(R.id.email_input)
     private val submitButton: Button = view.findViewById(R.id.submit_button)
@@ -59,6 +60,10 @@ class RequestCodeViewImpl(private val view: View) : RequestCodeView {
             }
         })
         submitButton.setOnClickListener { submitRelay.accept(Unit) }
+
+        // A CoordinatorLayout root dispatches insets instead of
+        // padding itself, so the scroller takes the bottom one.
+        scrollView.applyBottomInsets()
     }
 
     override fun showProgress() {
@@ -88,7 +93,7 @@ class RequestCodeViewImpl(private val view: View) : RequestCodeView {
     override fun submitClicks(): Observable<Unit> = submitRelay
 
     override fun showError(text: String) {
-        Snackbar.make(rootView, text, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_LONG).show()
     }
 
 }

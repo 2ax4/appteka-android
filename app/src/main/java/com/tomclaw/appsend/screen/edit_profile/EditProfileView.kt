@@ -13,6 +13,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.dto.UserIcon
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.hide
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
 import com.tomclaw.appsend.util.show
@@ -81,7 +82,7 @@ interface EditProfileView {
 
 class EditProfileViewImpl(view: View) : EditProfileView {
 
-    private val rootView: View = view.findViewById(R.id.root_view)
+    private val scrollView: View = view.findViewById(R.id.scroll_view)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
     private val avatarSection: View = view.findViewById(R.id.avatar_section)
     private val avatarChangeButton: MaterialButton = view.findViewById(R.id.avatar_change_button)
@@ -127,6 +128,10 @@ class EditProfileViewImpl(view: View) : EditProfileView {
         avatarChangeButton.setOnClickListener { changeAvatarRelay.accept(Unit) }
         avatarRemoveButton.setOnClickListener { removeAvatarRelay.accept(Unit) }
         saveButton.setOnClickListener { saveRelay.accept(Unit) }
+
+        // A CoordinatorLayout root dispatches insets instead of
+        // padding itself, so the scroller takes the bottom one.
+        scrollView.applyBottomInsets()
     }
 
     override fun setName(value: String) {
@@ -200,11 +205,11 @@ class EditProfileViewImpl(view: View) : EditProfileView {
     }
 
     override fun showError(text: String) {
-        Snackbar.make(rootView, text, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_LONG).show()
     }
 
     override fun showSuccess(text: String) {
-        Snackbar.make(rootView, text, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun navigationClicks(): Observable<Unit> = navigationRelay

@@ -10,6 +10,7 @@ import androidx.appcompat.widget.Toolbar
 import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.hide
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
 import com.tomclaw.appsend.util.show
@@ -60,7 +61,7 @@ interface ChangeEmailView {
 
 class ChangeEmailViewImpl(private val view: View) : ChangeEmailView {
 
-    private val rootView: View = view.findViewById(R.id.root_view)
+    private val scrollView: View = view.findViewById(R.id.scroll_view)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
     private val emailInput: EditText = view.findViewById(R.id.email_input)
     private val sendCodeButton: Button = view.findViewById(R.id.send_code_button)
@@ -98,6 +99,10 @@ class ChangeEmailViewImpl(private val view: View) : ChangeEmailView {
 
         sendCodeButton.setOnClickListener { sendCodeRelay.accept(Unit) }
         confirmButton.setOnClickListener { confirmRelay.accept(Unit) }
+
+        // A CoordinatorLayout root dispatches insets instead of
+        // padding itself, so the scroller takes the bottom one.
+        scrollView.applyBottomInsets()
     }
 
     override fun showProgress() {
@@ -153,11 +158,11 @@ class ChangeEmailViewImpl(private val view: View) : ChangeEmailView {
     }
 
     override fun showError(text: String) {
-        Snackbar.make(rootView, text, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_LONG).show()
     }
 
     override fun showSuccess(text: String) {
-        Snackbar.make(rootView, text, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun navigationClicks(): Observable<Unit> = navigationRelay

@@ -6,6 +6,7 @@ import android.widget.CheckBox
 import androidx.appcompat.widget.Toolbar
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
+import com.tomclaw.appsend.util.applyBottomInsets
 import io.reactivex.rxjava3.core.Observable
 
 interface AgreementView {
@@ -26,6 +27,7 @@ interface AgreementView {
 
 class AgreementViewImpl(view: View) : AgreementView {
 
+    private val scrollView: View = view.findViewById(R.id.scroll_view)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
     private val agreementCheck: CheckBox = view.findViewById(R.id.agreement_check)
     private val submitButton: Button = view.findViewById(R.id.submit_button)
@@ -42,6 +44,10 @@ class AgreementViewImpl(view: View) : AgreementView {
             agreementRelay.accept(isChecked)
         }
         submitButton.setOnClickListener { submitRelay.accept(Unit) }
+
+        // A CoordinatorLayout root dispatches insets instead of
+        // padding itself, so the scroller takes the bottom one.
+        scrollView.applyBottomInsets()
     }
 
     override fun setAgreed(check: Boolean) {

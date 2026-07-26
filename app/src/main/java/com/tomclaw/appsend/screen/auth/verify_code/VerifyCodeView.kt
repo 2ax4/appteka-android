@@ -11,6 +11,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
+import com.tomclaw.appsend.util.applyBottomInsets
 import com.tomclaw.appsend.util.bind
 import com.tomclaw.appsend.util.hide
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
@@ -53,7 +54,7 @@ interface VerifyCodeView {
 
 class VerifyCodeViewImpl(private val view: View) : VerifyCodeView {
 
-    private val rootView: View = view.findViewById(R.id.root_view)
+    private val scrollView: View = view.findViewById(R.id.scroll_view)
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
     private val codeSentDescription: TextView = view.findViewById(R.id.code_sent_description)
     private val codeInput: AppCompatEditText = view.findViewById(R.id.code_input)
@@ -88,6 +89,10 @@ class VerifyCodeViewImpl(private val view: View) : VerifyCodeView {
             }
         })
         submitButton.setOnClickListener { submitRelay.accept(Unit) }
+
+        // A CoordinatorLayout root dispatches insets instead of
+        // padding itself, so the scroller takes the bottom one.
+        scrollView.applyBottomInsets()
     }
 
     override fun setCodeSentDescription(value: String) {
@@ -129,7 +134,7 @@ class VerifyCodeViewImpl(private val view: View) : VerifyCodeView {
     }
 
     override fun showError(text: String) {
-        Snackbar.make(rootView, text, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(scrollView, text, Snackbar.LENGTH_LONG).show()
     }
 
     override fun setSubmitButtonText(value: String) {
