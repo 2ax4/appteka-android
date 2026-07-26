@@ -3,11 +3,18 @@ package com.tomclaw.appsend.screen.details
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
+import android.text.TextUtils
+import android.text.method.ScrollingMovementMethod
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnPreDraw
+import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -174,6 +181,7 @@ class DetailsViewImpl(
     private val aiReviewIcon: ImageView = view.findViewById(R.id.ai_review_icon)
     private val aiReviewTitle: TextView = view.findViewById(R.id.ai_review_title)
     private val aiReviewReason: TextView = view.findViewById(R.id.ai_review_reason)
+    private val aiReviewChevron: ImageView = view.findViewById(R.id.ai_review_chevron)
     private val blockingProgress: View = view.findViewById(R.id.blocking_progress)
     private val retryButton: View = view.findViewById(R.id.retry_button)
 
@@ -200,6 +208,10 @@ class DetailsViewImpl(
     private val layoutManager: LinearLayoutManager
 
     private var dialog: Dialog? = null
+
+    private var aiReviewExpanded: Boolean = false
+
+    private var aiReviewReasonText: String? = null
 
     init {
         toolbar.setNavigationOnClickListener { navigationRelay.accept(Unit) }
@@ -228,6 +240,7 @@ class DetailsViewImpl(
         denyButton.setOnClickListener {
             moderationRelay.accept(false)
         }
+        aiReviewCard.setOnClickListener { setAIReviewExpanded(!aiReviewExpanded) }
 
         retryButton.setOnClickListener { retryRelay.accept(Unit) }
 
@@ -239,9 +252,16 @@ class DetailsViewImpl(
         recycler.itemAnimator = DefaultItemAnimator()
         recycler.itemAnimator?.changeDuration = DURATION_MEDIUM
 
-        // Insets: content keeps clear of the navigation
-        // bar while still scrolling underneath it.
-        recycler.applyBottomInsets()
+        // Insets: content keeps clear of the navigation bar while still
+        // scrolling underneath it. In moderation the bar stands on that
+        // edge instead and takes the inset itself, so the same padding
+        // on the list would only add an empty strip above the bar.
+        ViewCompat.setOnApplyWindowInsetsListener(recycler) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = if (moderation.isVisible) 0 else insets.bottom)
+            windowInsets
+        }
+        moderation.applyBottomInsets()
     }
 
     override fun showProgress() {
@@ -488,6 +508,9 @@ class DetailsViewImpl(
 
     override fun showModeration() {
         moderation.show()
+        // The bar has taken over the bottom edge along with the
+        // navigation inset — the list ends right above it.
+        recycler.updatePadding(bottom = 0)
     }
 
     override fun showAIReview(decision: Int, title: String, reasonText: String?) {
@@ -501,15 +524,75 @@ class DetailsViewImpl(
         aiReviewTitle.setTextColor(ContextCompat.getColor(context, textRes))
         if (reasonText.isNullOrBlank()) {
             aiReviewReason.visibility = View.GONE
+            aiReviewChevron.visibility = View.GONE
+            aiReviewCard.isClickable = false
         } else {
-            aiReviewReason.text = reasonText
+            aiReviewReasonText = reasonText
             aiReviewReason.visibility = View.VISIBLE
+            setAIReviewExpanded(expanded = false)
+            // The note only unfolds when the summary actually cuts
+            // something off — a chevron over two lines of text would
+            // promise more than there is.
+            aiReviewCard.isClickable = false
+            aiReviewReason.doOnPreDraw {
+                val expandable = aiReviewReason.isEllipsized()
+                aiReviewChevron.isVisible = expandable
+                aiReviewCard.isClickable = expandable
+            }
         }
         aiReviewCard.visibility = View.VISIBLE
     }
 
     override fun hideAIReview() {
         aiReviewCard.visibility = View.GONE
+    }
+
+    private fun setAIReviewExpanded(expanded: Boolean) {
+        aiReviewExpanded = expanded
+        with(aiReviewReason) {
+            if (expanded) {
+                // No ellipsis unfolded — an ellipsized layout ends at
+                // the last line and there would be nothing to scroll to.
+                ellipsize = null
+                maxLines = expandedReasonLines()
+                movementMethod = ScrollingMovementMethod()
+            } else {
+                movementMethod = null
+                // The movement method leaves the text in a spannable
+                // buffer, and the trailing ellipsis never shows up on
+                // that path — put the plain text back before folding.
+                setText(aiReviewReasonText, TextView.BufferType.NORMAL)
+                ellipsize = TextUtils.TruncateAt.END
+                maxLines = COLLAPSED_REASON_LINES
+                scrollTo(0, 0)
+            }
+        }
+        // The chevron points at what the tap does, not at the state:
+        // up to unfold the note, down to fold it back.
+        aiReviewChevron.animate()
+            .rotation(if (expanded) 0f else 180f)
+            .setDuration(DURATION_SHORT)
+            .start()
+    }
+
+    /**
+     * Unfolded, the note takes at most a share of the list area and
+     * scrolls inside itself past that: the moderator is judging the app
+     * page, and the page has to stay readable behind the bar.
+     */
+    private fun expandedReasonLines(): Int {
+        val available = recycler.height.takeIf { it > 0 }
+            ?: context.resources.displayMetrics.heightPixels
+        val lineHeight = aiReviewReason.lineHeight.takeIf { it > 0 }
+            ?: return COLLAPSED_REASON_LINES
+        val lines = (available * EXPANDED_REASON_RATIO / lineHeight).toInt()
+        return lines.coerceAtLeast(COLLAPSED_REASON_LINES + 1)
+    }
+
+    private fun TextView.isEllipsized(): Boolean {
+        val layout = layout ?: return false
+        val lastLine = layout.lineCount - 1
+        return lastLine >= 0 && layout.getEllipsisCount(lastLine) > 0
     }
 
     override fun showError() {
@@ -647,3 +730,6 @@ class DetailsViewImpl(
 }
 
 private const val DURATION_MEDIUM = 300L
+private const val DURATION_SHORT = 150L
+private const val COLLAPSED_REASON_LINES = 3
+private const val EXPANDED_REASON_RATIO = 0.35f

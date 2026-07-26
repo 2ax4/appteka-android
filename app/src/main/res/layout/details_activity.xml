@@ -46,6 +46,7 @@
             android:id="@+id/ai_review_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingTop="14dp"
@@ -79,13 +80,36 @@
                     tools:text="Approve · 95%"
                     tools:textColor="@color/block_success_text_color" />
 
+                <ImageView
+                    android:id="@+id/ai_review_chevron"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:importantForAccessibility="no"
+                    android:rotation="180"
+                    android:src="@drawable/ic_chevron_down"
+                    android:visibility="gone"
+                    app:tint="?attr/text_secondary_color"
+                    tools:visibility="visible" />
+
             </LinearLayout>
 
+            <!--
+                Folded to a summary by default: a verdict can run several
+                paragraphs, and a bar that grows with it leaves nothing
+                of the page being moderated. Unfolds on tap and scrolls
+                inside itself past the cap set in code.
+            -->
             <TextView
                 android:id="@+id/ai_review_reason"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:fadingEdgeLength="16dp"
+                android:maxLines="3"
+                android:requiresFadingEdge="vertical"
+                android:scrollbars="vertical"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?text_secondary_color"
                 tools:text="Description matches the title." />
