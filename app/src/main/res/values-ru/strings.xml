@@ -256,6 +256,12 @@
     <string name="enter_your_review">Поделитесь впечатлениями (необязательно)</string>
     <string name="review_publish_failed">Не удалось опубликовать отзыв</string>
     <string name="your_review">Ваш отзыв</string>
+    <plurals name="see_all_reviews">
+        <item quantity="one">Посмотреть %d отзыв</item>
+        <item quantity="few">Посмотреть все %d отзыва</item>
+        <item quantity="many">Посмотреть все %d отзывов</item>
+        <item quantity="other">Посмотреть все %d отзывов</item>
+    </plurals>
     <string name="review_required_error">Для оценок ниже 4 отзыв обязателен и должен содержать не менее 10 символов</string>
     <string name="rating_required_error">Пожалуйста, выберите оценку</string>
     <string name="edit_feedback">Изменить отзыв</string>

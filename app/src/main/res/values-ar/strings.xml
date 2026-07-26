@@ -265,6 +265,14 @@
     <string name="enter_your_review">شارك تجربتك (اختياري)</string>
     <string name="review_publish_failed">فشل نشر المراجعة</string>
     <string name="your_review">مراجعتك</string>
+    <plurals name="see_all_reviews">
+        <item quantity="zero">عرض كل المراجعات %d</item>
+        <item quantity="one">عرض المراجعة %d</item>
+        <item quantity="two">عرض كل المراجعات %d</item>
+        <item quantity="few">عرض كل المراجعات %d</item>
+        <item quantity="many">عرض كل المراجعات %d</item>
+        <item quantity="other">عرض كل المراجعات %d</item>
+    </plurals>
     <string name="review_required_error">المراجعة إلزامية للتقييمات الأقل من 4 ويجب أن تحتوي على 10 أحرف على الأقل</string>
     <string name="rating_required_error">اختر تقييماً</string>
     <string name="edit_feedback">تعديل الملاحظات</string>

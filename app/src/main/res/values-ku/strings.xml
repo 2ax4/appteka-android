@@ -255,6 +255,10 @@
     <string name="enter_your_review">ئەزموونەکەت بەشدار بکە (ئارەزوومەندانە)</string>
     <string name="review_publish_failed">بڵاوکردنەوەی پێداچوونەوە سەرکەوتوو نەبوو</string>
     <string name="your_review">پێداچوونەوەکەت</string>
+    <plurals name="see_all_reviews">
+        <item quantity="one">بینینی %d پێداچوونەوە</item>
+        <item quantity="other">بینینی هەموو %d پێداچوونەوە</item>
+    </plurals>
     <string name="review_required_error">نووسینی پێداچوونەوە داواکراوە بۆ هەڵسەنگاندنەکانی خوار 4 ئەستێرە و دەبێت بەلایەنی کەمەوە 10 پیت بێت</string>
     <string name="rating_required_error">تکایە هەڵسەنگاندنێک هەڵبژێرە</string>
     <string name="edit_feedback">دەستکاری فیدباک</string>

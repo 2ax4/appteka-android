@@ -7,6 +7,7 @@ import com.tomclaw.appsend.categories.DEFAULT_LOCALE
 import com.tomclaw.appsend.screen.details.adapter.abi.AbiItem
 import com.tomclaw.appsend.screen.details.adapter.abi.AbiResourceProvider
 import com.tomclaw.appsend.screen.details.adapter.ai_note.AINoteItem
+import com.tomclaw.appsend.screen.details.adapter.all_ratings.AllRatingsItem
 import com.tomclaw.appsend.screen.details.adapter.ai_note.AINoteState
 import com.tomclaw.appsend.screen.details.adapter.controls.ControlsItem
 import com.tomclaw.appsend.screen.details.adapter.description.DescriptionItem
@@ -342,6 +343,12 @@ class DetailsConverterImpl(
                     user = rating.user,
                 )
             }
+            // Only the freshest reviews are on this screen and nothing hints
+            // at the rest, so the shortcut to the full list is spelled out.
+            items += AllRatingsItem(
+                id = id++,
+                rateCount = details.meta?.rateCount ?: details.ratingsList.size,
+            )
         }
 
         return items

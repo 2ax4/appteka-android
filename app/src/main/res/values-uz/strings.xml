@@ -253,6 +253,10 @@
     <string name="enter_your_review">Tajribangizni baham ko\'rish (ixtiyoriy)</string>
     <string name="review_publish_failed">Sharhni nashr etishda xatolik yuz berdi</string>
     <string name="your_review">Sharhingiz</string>
+    <plurals name="see_all_reviews">
+        <item quantity="one">%d sharhni ko\'rish</item>
+        <item quantity="other">Barcha %d sharhni ko\'rish</item>
+    </plurals>
     <string name="review_required_error">4 dan past baholar uchun sharh talab qilinadi va kamida 10 ta belgidan iborat bo\'lishi kerak</string>
     <string name="rating_required_error">Iltimos, reytingni tanlang</string>
     <string name="edit_feedback">Fikr-mulohazani tahrirlash</string>

@@ -11,6 +11,8 @@ import com.tomclaw.appsend.di.DATE_FORMATTER
 import com.tomclaw.appsend.download.DownloadManager
 import com.tomclaw.appsend.screen.details.DetailsConverter
 import com.tomclaw.appsend.screen.details.DetailsConverterImpl
+import com.tomclaw.appsend.screen.details.adapter.all_ratings.AllRatingsItemBlueprint
+import com.tomclaw.appsend.screen.details.adapter.all_ratings.AllRatingsItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.abi.AbiItemBlueprint
 import com.tomclaw.appsend.screen.details.adapter.abi.AbiItemPresenter
 import com.tomclaw.appsend.screen.details.adapter.abi.AbiResourceProvider
@@ -327,6 +329,19 @@ class DetailsModule(
         locale: Locale,
         presenter: DetailsPresenter
     ) = RatingItemPresenter(dateFormatter, locale, presenter)
+
+    @Provides
+    @IntoSet
+    @PerActivity
+    internal fun provideAllRatingsItemBlueprint(
+        presenter: AllRatingsItemPresenter
+    ): ItemBlueprint<*, *> = AllRatingsItemBlueprint(presenter)
+
+    @Provides
+    @PerActivity
+    internal fun provideAllRatingsItemPresenter(
+        presenter: DetailsPresenter
+    ) = AllRatingsItemPresenter(presenter)
 
     @Provides
     @IntoSet

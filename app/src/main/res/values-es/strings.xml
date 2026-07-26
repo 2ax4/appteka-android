@@ -254,6 +254,11 @@
     <string name="enter_your_review">Comparta su experiencia (opcional)</string>
     <string name="review_publish_failed">Error en la publicación de la reseña</string>
     <string name="your_review">Su reseña</string>
+    <plurals name="see_all_reviews">
+        <item quantity="one">Ver %d reseña</item>
+        <item quantity="many">Ver las %d reseñas</item>
+        <item quantity="other">Ver las %d reseñas</item>
+    </plurals>
     <string name="review_required_error">Las calificaciones por debajo de 4 requieren una reseña que debe contener al menos 10 caracteres</string>
     <string name="rating_required_error">Por favor, seleccione una calificación</string>
     <string name="edit_feedback">Editar comentario</string>

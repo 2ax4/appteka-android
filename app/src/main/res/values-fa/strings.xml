@@ -255,6 +255,10 @@
     <string name="enter_your_review">تجربه خود را به اشتراک بگذارید (اختیاری)</string>
     <string name="review_publish_failed">انتشار نظر ناموفق بود</string>
     <string name="your_review">نظر شما</string>
+    <plurals name="see_all_reviews">
+        <item quantity="one">مشاهده %d نظر</item>
+        <item quantity="other">مشاهده همه %d نظر</item>
+    </plurals>
     <string name="review_required_error">برای امتیاز های زیر ۴ نظر لازم است و باید حداقل شامل ۱۰ نویسه باشد</string>
     <string name="rating_required_error">لطفا یک امتیاز انتخاب کنید</string>
     <string name="edit_feedback">ویرایش بازخورد</string>

@@ -253,6 +253,10 @@
     <string name="enter_your_review">Condividi la tua esperienza (opzionale)</string>
     <string name="review_publish_failed">Pubblicazione recensione fallita</string>
     <string name="your_review">La tua recensione</string>
+    <plurals name="see_all_reviews">
+        <item quantity="one">Vedi %d recensione</item>
+        <item quantity="other">Vedi tutte le %d recensioni</item>
+    </plurals>
     <string name="review_required_error">La recensione è obbligatoria per valutazioni inferiori a 4 e deve contenere almeno 10 caratteri</string>
     <string name="rating_required_error">Seleziona una valutazione</string>
     <string name="edit_feedback">Modifica feedback</string>
