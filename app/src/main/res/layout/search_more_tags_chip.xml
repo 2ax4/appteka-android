@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Ends the popular tags with the next batch of them. The screen shows
+    a screenful at a time out of a vocabulary thousands of tags long, so
+    without this nothing would say there is more of it.
+-->
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Material3.Chip.Assist"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:chipIcon="@drawable/ic_chevron_down"
+    app:chipIconTint="?attr/colorOnSurfaceVariant"
+    tools:text="More" />

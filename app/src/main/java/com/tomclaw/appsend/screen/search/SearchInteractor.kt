@@ -61,6 +61,9 @@ class SearchInteractorImpl(
 }
 
 // The vocabulary has a long tail — most tags belong to a couple of apps
-// — so the suggestions come from the substantial end of it.
+// — so the suggestions come from the substantial end of it. Even so it
+// runs into the thousands, and the whole of it arrives in one response,
+// so what is kept is the head: enough to browse batch by batch and to
+// match what is being typed against, without holding a dictionary.
 private const val POPULAR_TAGS_MIN_COUNT = 3
-private const val POPULAR_TAGS_COUNT = 30
+private const val POPULAR_TAGS_COUNT = 300

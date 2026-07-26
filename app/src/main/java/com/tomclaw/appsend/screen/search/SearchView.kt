@@ -57,7 +57,8 @@ interface SearchView {
      */
     fun showTags(selected: List<String>, suggestions: List<String>, custom: String?)
 
-    fun showPopularTags(tags: List<String>)
+    /** [hasMore] offers the next batch of the vocabulary, if any is left. */
+    fun showPopularTags(tags: List<String>, hasMore: Boolean)
 
     fun retryClicks(): Observable<Unit>
 
@@ -72,6 +73,8 @@ interface SearchView {
     fun customTagClicks(): Observable<String>
 
     fun popularTagClicks(): Observable<String>
+
+    fun moreTagsClicks(): Observable<Unit>
 
 }
 
@@ -100,6 +103,7 @@ class SearchViewImpl(
     private val tagSuggestionRelay = PublishRelay.create<String>()
     private val customTagRelay = PublishRelay.create<String>()
     private val popularTagRelay = PublishRelay.create<String>()
+    private val moreTagsRelay = PublishRelay.create<Unit>()
 
     init {
         val orientation = RecyclerView.VERTICAL
@@ -199,12 +203,18 @@ class SearchViewImpl(
         tagsScroll.isVisible = tagsGroup.childCount > 0
     }
 
-    override fun showPopularTags(tags: List<String>) {
+    override fun showPopularTags(tags: List<String>, hasMore: Boolean) {
         popularTagsTitle.isVisible = tags.isNotEmpty()
         popularTags.removeAllViews()
         for (tag in tags) {
             val chip = inflateChip(R.layout.search_tag_chip, popularTags, tag)
             chip.setOnClickListener { popularTagRelay.accept(tag) }
+            popularTags.addView(chip)
+        }
+        if (hasMore) {
+            val label = context.getString(R.string.search_more_tags)
+            val chip = inflateChip(R.layout.search_more_tags_chip, popularTags, label)
+            chip.setOnClickListener { moreTagsRelay.accept(Unit) }
             popularTags.addView(chip)
         }
     }
@@ -231,6 +241,8 @@ class SearchViewImpl(
     override fun customTagClicks(): Observable<String> = customTagRelay
 
     override fun popularTagClicks(): Observable<String> = popularTagRelay
+
+    override fun moreTagsClicks(): Observable<Unit> = moreTagsRelay
 
 }
 

@@ -326,6 +326,7 @@
     <string name="tags_block_title">Tags</string>
     <string name="popular_tags_title">Popular tags</string>
     <string name="search_add_tag">Tag “%1$s”</string>
+    <string name="search_more_tags">More</string>
     <string name="search_hint">Search by name, package or developer</string>
     <string name="similar_apps_title">Similar apps</string>
     <string name="security_scanning_short">Scanning</string>

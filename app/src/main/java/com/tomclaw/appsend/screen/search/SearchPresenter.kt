@@ -75,6 +75,10 @@ class SearchPresenterImpl(
         state?.getStringArrayList(KEY_POPULAR_TAGS)
     private var isLoadingPopularTags: Boolean = false
 
+    /** How much of the vocabulary the placeholder has been asked for. */
+    private var popularTagsShown: Int =
+        state?.getInt(KEY_POPULAR_TAGS_SHOWN, POPULAR_TAGS_PAGE) ?: POPULAR_TAGS_PAGE
+
     private val hasCriteria: Boolean
         get() = query.isNotBlank() || tags.isNotEmpty()
 
@@ -118,6 +122,11 @@ class SearchPresenterImpl(
             analytics.trackEvent("search-popular-tag")
             addTag(tag)
         }
+        subscriptions += view.moreTagsClicks().subscribe {
+            popularTagsShown += POPULAR_TAGS_PAGE
+            analytics.trackEvent("search-more-tags")
+            bindTags()
+        }
 
         if (query.isNotEmpty()) {
             view.setQueryText(query)
@@ -154,6 +163,7 @@ class SearchPresenterImpl(
         putString(KEY_QUERY, query)
         putStringArrayList(KEY_TAGS, ArrayList(tags))
         popularTags?.let { putStringArrayList(KEY_POPULAR_TAGS, ArrayList(it)) }
+        putInt(KEY_POPULAR_TAGS_SHOWN, popularTagsShown)
     }
 
     override fun invalidateSearch() {
@@ -208,7 +218,10 @@ class SearchPresenterImpl(
         // matches nothing known is still worth offering as a tag.
         val custom = text.takeIf { it.isNotEmpty() && !isKnownTag(it) }
         view.showTags(selected = tags, suggestions = suggestions, custom = custom)
-        view.showPopularTags(available)
+        // The cloud is browsed, not searched: a screenful at a time, and
+        // the rest of the vocabulary only if it is asked for.
+        val popular = available.take(popularTagsShown)
+        view.showPopularTags(popular, hasMore = available.size > popular.size)
     }
 
     private fun isSelected(tag: String): Boolean =
@@ -359,7 +372,12 @@ private const val KEY_ERROR = "error"
 private const val KEY_QUERY = "query"
 private const val KEY_TAGS = "tags"
 private const val KEY_POPULAR_TAGS = "popular_tags"
+private const val KEY_POPULAR_TAGS_SHOWN = "popular_tags_shown"
 private const val DEBOUNCE_DELAY_MS = 500L
+
+// About a screenful of chips, so that asking for more is answered with
+// more to look at rather than with a line or two appearing.
+private const val POPULAR_TAGS_PAGE = 30
 
 // The row next to the query scrolls, but it is still a row: past a
 // handful of suggestions nobody reads them, they just get in the way of
