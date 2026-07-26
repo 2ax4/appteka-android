@@ -181,15 +181,19 @@ class ProfileFragment : Fragment(), ProfilePresenter.ProfileRouter, HomeFragment
         startActivity(intent)
     }
 
-    override fun openSubscribersScreen(userId: Int) {
+    override fun openSubscribersScreen(userId: Int, userName: String?) {
         val context = context ?: return
-        val intent = createSubscriptionsActivityIntent(context, userId, activeTab = Tab.SUBSCRIBERS)
+        val intent = createSubscriptionsActivityIntent(
+            context, userId, activeTab = Tab.SUBSCRIBERS, userName = userName
+        )
         startActivity(intent)
     }
 
-    override fun openPublishersScreen(userId: Int) {
+    override fun openPublishersScreen(userId: Int, userName: String?) {
         val context = context ?: return
-        val intent = createSubscriptionsActivityIntent(context, userId, activeTab = Tab.PUBLISHERS)
+        val intent = createSubscriptionsActivityIntent(
+            context, userId, activeTab = Tab.PUBLISHERS, userName = userName
+        )
         startActivity(intent)
     }
 

@@ -58,9 +58,9 @@ interface ProfilePresenter : ItemListener {
 
         fun openFeedScreen(userId: Int)
 
-        fun openSubscribersScreen(userId: Int)
+        fun openSubscribersScreen(userId: Int, userName: String?)
 
-        fun openPublishersScreen(userId: Int)
+        fun openPublishersScreen(userId: Int, userName: String?)
 
         fun openModerationScreen()
 
@@ -229,12 +229,12 @@ class ProfilePresenterImpl(
 
     override fun onSubscribersClick() {
         val profile = profile?.profile ?: return
-        router?.openSubscribersScreen(profile.userId)
+        router?.openSubscribersScreen(profile.userId, profile.name)
     }
 
     override fun onPublishersClick() {
         val profile = profile?.profile ?: return
-        router?.openPublishersScreen(profile.userId)
+        router?.openPublishersScreen(profile.userId, profile.name)
     }
 
     override fun onSubscribeClick() {

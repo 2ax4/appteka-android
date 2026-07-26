@@ -15,6 +15,13 @@ import java.util.Locale
 
 interface SubscriptionsView {
 
+    /**
+     * Whose subscriptions these are. The tabs already say which kind,
+     * so the name is the only thing left worth putting in the bar —
+     * and it may be missing, in which case the bar stays untitled.
+     */
+    fun setTitle(title: String?)
+
     fun setSelectedPage(index: Int)
 
     fun navigationClicks(): Observable<Unit>
@@ -64,6 +71,10 @@ class SubscriptionsViewImpl(
     @SuppressLint("NotifyDataSetChanged")
     override fun contentUpdated() {
         adapter.notifyDataSetChanged()
+    }
+
+    override fun setTitle(title: String?) {
+        toolbar.title = title
     }
 
     override fun setSelectedPage(index: Int) {

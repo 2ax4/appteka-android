@@ -30,6 +30,7 @@ class SubscriptionsActivity : AppCompatActivity(), SubscriptionsPresenter.Subscr
 
         val adapter = SubscriptionsAdapter(supportFragmentManager, lifecycle, userId)
         val view = SubscriptionsViewImpl(window.decorView, adapter)
+        view.setTitle(intent.getStringExtra(EXTRA_USER_NAME))
         view.setSelectedPage(activeTab.ordinal)
 
         presenter.attachView(view)
@@ -65,11 +66,14 @@ fun createSubscriptionsActivityIntent(
     context: Context,
     userId: Int,
     activeTab: Tab,
+    userName: String? = null,
 ): Intent = Intent(context, SubscriptionsActivity::class.java)
     .putExtra(EXTRA_USER_ID, userId)
     .putExtra(EXTRA_ACTIVE_TAB, activeTab.name)
+    .putExtra(EXTRA_USER_NAME, userName)
 
 private const val KEY_PRESENTER_STATE = "presenter_state"
 
 private const val EXTRA_USER_ID = "user_id"
 private const val EXTRA_ACTIVE_TAB = "tab"
+private const val EXTRA_USER_NAME = "user_name"
