@@ -82,6 +82,7 @@ class FeedViewImpl(
 
     private val context = view.context
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
+    private val appBar: View = view.findViewById(R.id.toolbar_container)
     private val flipper: ViewFlipper = view.findViewById(R.id.view_flipper)
     private val overlayProgress: View = view.findViewById(R.id.overlay_progress)
     private val recycler: RecyclerView = view.findViewById(R.id.recycler)
@@ -129,11 +130,12 @@ class FeedViewImpl(
     }
 
     override fun showToolbar() {
-        toolbar.show()
+        appBar.show()
     }
 
+    /** See ProfileView.hideToolbar — the bar hides, not the toolbar. */
     override fun hideToolbar() {
-        toolbar.hide()
+        appBar.hide()
     }
 
     override fun showPlaceholder() {

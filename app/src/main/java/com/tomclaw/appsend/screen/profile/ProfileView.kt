@@ -77,6 +77,7 @@ class ProfileViewImpl(
 
     private val context = view.context
     private val toolbar: Toolbar = view.findViewById(R.id.toolbar)
+    private val appBar: View = view.findViewById(R.id.toolbar_container)
     private val swipeRefresh: SwipeRefreshLayout = view.findViewById(R.id.swipe_refresh)
     private val recycler: RecyclerView = view.findViewById(R.id.recycler)
     private val error: View = view.findViewById(R.id.error)
@@ -147,11 +148,17 @@ class ProfileViewImpl(
     }
 
     override fun showToolbar() {
-        toolbar.show()
+        appBar.show()
     }
 
+    /**
+     * The whole bar goes, not just the toolbar inside it. A visible
+     * AppBarLayout claims the nested scroll for this fragment's own
+     * CoordinatorLayout, and the host's bar — the one actually on
+     * screen in that case — never learns the list has moved.
+     */
     override fun hideToolbar() {
-        toolbar.hide()
+        appBar.hide()
     }
 
     override fun showError() {
