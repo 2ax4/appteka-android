@@ -119,6 +119,10 @@
     <string name="chat_loading_error">संवाद नहीं खोल सका</string>
     <string name="enter_your_message">आपका संदेश…</string>
     <string name="error_sending_message">संदेश भेजने में विफल</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 इमेज</item>
+        <item quantity="other">📷 %d इमेजिस</item>
+    </plurals>
     <string name="reply">उत्तर लिखें</string>
     <string name="copy">प्रतिलिपि</string>
     <string name="report">एक शिकायत दर्ज़ करें</string>
@@ -302,6 +306,10 @@
     <string name="security_failed">सुरक्षा स्कैन विफल</string>
     <string name="security_scan_requested">सुरक्षा स्कैन का अनुरोध किया गया</string>
     <string name="security_scan_error">सुरक्षा स्कैन का अनुरोध करने में विफल</string>
+    <string name="tags_block_title">टैग</string>
+    <string name="popular_tags_title">लोकप्रिय टैग</string>
+    <string name="search_hint">नाम, पैकेज या डेवलपर से खोजें</string>
+    <string name="similar_apps_title">समान ऐप्स</string>
     <string name="security_scanning_short">स्कैनिंग</string>
     <string name="security_safe_short">सुरक्षित</string>
     <string name="security_suspicious_short">संदिग्ध</string>
@@ -396,6 +404,7 @@
     <string name="posts">पदों</string>
     <string name="subscribers">ग्राहकों</string>
     <string name="publishers">प्रकाशकों</string>
+    <string name="connections">कनेक्शन</string>
     <string name="subscribe">सदस्यता लें</string>
     <string name="unsubscribe">सदस्यता रद्द</string>
     <string name="unable_to_change_subscription_state">सदस्यता स्थिति बदलने में विफल</string>

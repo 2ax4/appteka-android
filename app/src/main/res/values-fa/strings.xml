@@ -120,6 +120,10 @@
     <string name="chat_loading_error">گفتگو باز نشد</string>
     <string name="enter_your_message">پیام شما…</string>
     <string name="error_sending_message">پیام ارسال نشد</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 تصویر</item>
+        <item quantity="other">📷 %d تصویر</item>
+    </plurals>
     <string name="reply">پاسخ</string>
     <string name="copy">کپی</string>
     <string name="report">گزارش تخلف</string>
@@ -303,6 +307,10 @@
     <string name="security_failed">اسکن امنیتی انجام نشد</string>
     <string name="security_scan_requested">اسکن امنیتی درخواست شد</string>
     <string name="security_scan_error">درخواست اسکن امنیتی ناموفق بود</string>
+    <string name="tags_block_title">برچسب‌ها</string>
+    <string name="popular_tags_title">برچسب‌های پرطرفدار</string>
+    <string name="search_hint">جستجو بر اساس نام، بسته یا توسعه‌دهنده</string>
+    <string name="similar_apps_title">برنامه‌های مشابه</string>
     <string name="security_scanning_short">در حال اسکن</string>
     <string name="security_safe_short">امن</string>
     <string name="security_suspicious_short">مشکوک</string>
@@ -403,6 +411,7 @@
     <string name="posts">پست ها</string>
     <string name="subscribers">دنبال کننده</string>
     <string name="publishers">دنبال شونده</string>
+    <string name="connections">ارتباط‌ها</string>
     <string name="subscribe">دنبال کردن</string>
     <string name="unsubscribe">لغو دنبال کردن</string>
     <string name="unable_to_change_subscription_state">تغییر وضعیت دنبال کردن ناموفق بود</string>

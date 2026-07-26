@@ -120,6 +120,10 @@
     <string name="chat_loading_error">کردنەوەی گفتوگۆ سەرکەوتوو نەبوو</string>
     <string name="enter_your_message">نامەکەت…</string>
     <string name="error_sending_message">ناتوانرێت نامە بنێردرێت</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 وێنە</item>
+        <item quantity="other">📷 %d وێنە</item>
+    </plurals>
     <string name="reply">وەڵامدانەوە</string>
     <string name="copy">لەبەرگرتنەوە</string>
     <string name="report">ڕاپۆرتکردنی پێشێلکاری</string>
@@ -303,6 +307,10 @@
     <string name="security_failed">سکانی ئاسایش شکستی هێنا</string>
     <string name="security_scan_requested">پشکنینی ئاسایش داواکرا</string>
     <string name="security_scan_error">داواکردنی پشکنینی ئاسایش سەرکەوتوو نەبوو</string>
+    <string name="tags_block_title">تاگەکان</string>
+    <string name="popular_tags_title">تاگە بەناوبانگەکان</string>
+    <string name="search_hint">گەڕان بە ناو، پاکێج یان گەشەپێدەر</string>
+    <string name="similar_apps_title">بەرنامە هاوشێوەکان</string>
     <string name="security_scanning_short">پشکنین…</string>
     <string name="security_safe_short">سەلامەت</string>
     <string name="security_suspicious_short">جێگای گومانە</string>
@@ -409,6 +417,7 @@
     <string name="posts">پۆستەکان</string>
     <string name="subscribers">بەشداربووان</string>
     <string name="publishers">بڵاوکەرەوەکان</string>
+    <string name="connections">پەیوەندییەکان</string>
     <string name="subscribe">بەشداریکردن</string>
     <string name="unsubscribe">هەڵوەشاندنەوەی بەشداریکردن</string>
     <string name="unable_to_change_subscription_state">گۆڕینی دۆخی بەشداریکردن سەرکەوتوو نەبوو</string>

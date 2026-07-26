@@ -118,6 +118,10 @@
     <string name="chat_loading_error">Chatni ochib bo\'lmadi</string>
     <string name="enter_your_message">Sizning xabaringiz…</string>
     <string name="error_sending_message">Xabar yuborilmadi</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 Rasm</item>
+        <item quantity="other">📷 %d rasm</item>
+    </plurals>
     <string name="reply">Javob berish</string>
     <string name="copy">Nusxalash</string>
     <string name="report">Shikoyat qilish</string>
@@ -301,6 +305,10 @@
     <string name="security_failed">Xavfsizlik tekshiruvi amalga oshmadi</string>
     <string name="security_scan_requested">Xavfsizlik tekshiruvi so\'raldi</string>
     <string name="security_scan_error">Xavfsizlik tekshiruvini so\'rash amalga oshmadi</string>
+    <string name="tags_block_title">Teglar</string>
+    <string name="popular_tags_title">Ommabop teglar</string>
+    <string name="search_hint">Nom, paket yoki dasturchi bo\'yicha qidirish</string>
+    <string name="similar_apps_title">O\'xshash ilovalar</string>
     <string name="security_scanning_short">Skanerlash</string>
     <string name="security_safe_short">Xavfsiz</string>
     <string name="security_suspicious_short">Shubhali</string>
@@ -395,6 +403,7 @@
     <string name="posts">postlar</string>
     <string name="subscribers">obunachilar</string>
     <string name="publishers">nashriyotchilar</string>
+    <string name="connections">Aloqalar</string>
     <string name="subscribe">Obuna bo\'lish</string>
     <string name="unsubscribe">Obunani bekor qilish</string>
     <string name="unable_to_change_subscription_state">Obuna holatini o\'zgartirib bo\'lmadi</string>

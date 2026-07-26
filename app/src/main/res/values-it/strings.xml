@@ -118,6 +118,10 @@
     <string name="chat_loading_error">Impossibile aprire la chat</string>
     <string name="enter_your_message">Il tuo messaggio…</string>
     <string name="error_sending_message">Impossibile inviare il messaggio</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 Immagine</item>
+        <item quantity="other">📷 %d immagini</item>
+    </plurals>
     <string name="reply">Rispondi</string>
     <string name="copy">Copia</string>
     <string name="report">Segnala abuso</string>
@@ -307,6 +311,9 @@
     <string name="ai_note_ask_action">Chiedi all\'IA</string>
     <string name="ai_review_error">Impossibile richiedere la revisione IA</string>
     <string name="tags_block_title">Tag</string>
+    <string name="popular_tags_title">Tag popolari</string>
+    <string name="search_hint">Cerca per nome, pacchetto o sviluppatore</string>
+    <string name="similar_apps_title">App simili</string>
     <string name="security_scanning_short">Scansione</string>
     <string name="security_safe_short">Sicuro</string>
     <string name="security_suspicious_short">Sospetto</string>
@@ -401,6 +408,7 @@
     <string name="posts">post</string>
     <string name="subscribers">iscritti</string>
     <string name="publishers">editori</string>
+    <string name="connections">Connessioni</string>
     <string name="subscribe">Iscriviti</string>
     <string name="unsubscribe">Annulla iscrizione</string>
     <string name="unable_to_change_subscription_state">Modifica stato iscrizione fallita</string>

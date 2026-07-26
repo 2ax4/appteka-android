@@ -118,6 +118,11 @@
     <string name="chat_loading_error">Error al abrir el chat</string>
     <string name="enter_your_message">Su mensaje…</string>
     <string name="error_sending_message">No se pudo enviar el mensaje</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 Imagen</item>
+        <item quantity="many">📷 %d imágenes</item>
+        <item quantity="other">📷 %d imágenes</item>
+    </plurals>
     <string name="reply">Responder</string>
     <string name="copy">Copiar</string>
     <string name="report">Reportar abuso</string>
@@ -304,6 +309,10 @@
     <string name="security_failed">La verificación de seguridad falló</string>
     <string name="security_scan_requested">Verificación de seguridad solicitada</string>
     <string name="security_scan_error">Error al solicitar verificación de seguridad</string>
+    <string name="tags_block_title">Etiquetas</string>
+    <string name="popular_tags_title">Etiquetas populares</string>
+    <string name="search_hint">Buscar por nombre, paquete o desarrollador</string>
+    <string name="similar_apps_title">Aplicaciones similares</string>
     <string name="security_scanning_short">Verificando</string>
     <string name="security_safe_short">Seguro</string>
     <string name="security_suspicious_short">Sospechoso</string>
@@ -403,6 +412,7 @@
     <string name="posts">publicaciones</string>
     <string name="subscribers">suscriptores</string>
     <string name="publishers">publicadores</string>
+    <string name="connections">Conexiones</string>
     <string name="subscribe">Suscribirse</string>
     <string name="unsubscribe">Cancelar suscripción</string>
     <string name="unable_to_change_subscription_state">Error al cambiar el estado de la Suscripción</string>

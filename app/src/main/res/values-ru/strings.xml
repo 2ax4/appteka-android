@@ -119,6 +119,12 @@
     <string name="chat_loading_error">Не удалось открыть диалог</string>
     <string name="enter_your_message">Ваше сообщение…</string>
     <string name="error_sending_message">Не удалось отправить сообщение</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="one">📷 %d изображение</item>
+        <item quantity="few">📷 %d изображения</item>
+        <item quantity="many">📷 %d изображений</item>
+        <item quantity="other">📷 %d изображений</item>
+    </plurals>
     <string name="reply">Ответить</string>
     <string name="copy">Копировать</string>
     <string name="report">Пожаловаться</string>

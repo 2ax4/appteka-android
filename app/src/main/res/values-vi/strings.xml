@@ -119,6 +119,9 @@
     <string name="chat_loading_error">Không mở được hộp thoại</string>
     <string name="enter_your_message">Thư của bạn…</string>
     <string name="error_sending_message">Không thể chuyển thư</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="other">📷 %d hình ảnh</item>
+    </plurals>
     <string name="reply">Trả lời</string>
     <string name="copy">Sao chép</string>
     <string name="report">Phàn nàn</string>
@@ -297,6 +300,10 @@
     <string name="security_failed">Quét bảo mật thất bại</string>
     <string name="security_scan_requested">Đã yêu cầu quét bảo mật</string>
     <string name="security_scan_error">Không thể yêu cầu quét bảo mật</string>
+    <string name="tags_block_title">Thẻ</string>
+    <string name="popular_tags_title">Thẻ phổ biến</string>
+    <string name="search_hint">Tìm theo tên, gói hoặc nhà phát triển</string>
+    <string name="similar_apps_title">Ứng dụng tương tự</string>
     <string name="security_scanning_short">Đang quét</string>
     <string name="security_safe_short">An toàn</string>
     <string name="security_suspicious_short">Đáng ngờ</string>
@@ -386,6 +393,7 @@
     <string name="posts">bài viết</string>
     <string name="subscribers">Người đăng ký</string>
     <string name="publishers">các tác giả</string>
+    <string name="connections">Kết nối</string>
     <string name="subscribe">Đăng ký</string>
     <string name="unsubscribe">Hủy đăng ký</string>
     <string name="unable_to_change_subscription_state">Không thể thay đổi trạng thái đăng ký</string>

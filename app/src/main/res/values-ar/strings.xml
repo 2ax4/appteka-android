@@ -118,6 +118,14 @@
     <string name="chat_loading_error">تعذر فتح الدردشة</string>
     <string name="enter_your_message">رسالتك…</string>
     <string name="error_sending_message">تعذر إرسال الرسالة</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="zero">📷 %d صورة</item>
+        <item quantity="one">📷 صورة</item>
+        <item quantity="two">📷 صورتان</item>
+        <item quantity="few">📷 %d صور</item>
+        <item quantity="many">📷 %d صورة</item>
+        <item quantity="other">📷 %d صورة</item>
+    </plurals>
     <string name="reply">رد</string>
     <string name="copy">نسخ</string>
     <string name="report">الإبلاغ عن إساءة</string>
@@ -321,6 +329,10 @@
     <string name="security_failed">فشل فحص الأمان</string>
     <string name="security_scan_requested">تم طلب فحص الأمان</string>
     <string name="security_scan_error">فشل طلب فحص الأمان</string>
+    <string name="tags_block_title">الوسوم</string>
+    <string name="popular_tags_title">الوسوم الشائعة</string>
+    <string name="search_hint">ابحث بالاسم أو الحزمة أو المطور</string>
+    <string name="similar_apps_title">تطبيقات مشابهة</string>
     <string name="security_scanning_short">فحص</string>
     <string name="security_safe_short">آمن</string>
     <string name="security_suspicious_short">مشبوه</string>
@@ -435,6 +447,7 @@
     <string name="posts">منشورات</string>
     <string name="subscribers">مشتركون</string>
     <string name="publishers">ناشرون</string>
+    <string name="connections">الاتصالات</string>
     <string name="subscribe">اشتراك</string>
     <string name="unsubscribe">إلغاء الاشتراك</string>
     <string name="unable_to_change_subscription_state">فشل تغيير حالة الاشتراك</string>

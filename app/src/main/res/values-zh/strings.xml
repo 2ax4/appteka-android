@@ -119,6 +119,9 @@
     <string name="chat_loading_error">无法打开对话..</string>
     <string name="enter_your_message">您的留言…</string>
     <string name="error_sending_message">发送消息失败</string>
+    <plurals name="topic_last_msg_attachments">
+        <item quantity="other">📷 %d 张图片</item>
+    </plurals>
     <string name="reply">回答</string>
     <string name="copy">复制</string>
     <string name="report">举报</string>
@@ -297,6 +300,10 @@
     <string name="security_failed">安全扫描失败</string>
     <string name="security_scan_requested">已请求安全扫描</string>
     <string name="security_scan_error">无法请求安全扫描</string>
+    <string name="tags_block_title">标签</string>
+    <string name="popular_tags_title">热门标签</string>
+    <string name="search_hint">按名称、包名或开发者搜索</string>
+    <string name="similar_apps_title">类似应用</string>
     <string name="security_scanning_short">扫描中</string>
     <string name="security_safe_short">安全</string>
     <string name="security_suspicious_short">可疑</string>
@@ -386,6 +393,7 @@
     <string name="posts">帖子</string>
     <string name="subscribers">订阅者</string>
     <string name="publishers">发布者</string>
+    <string name="connections">订阅关系</string>
     <string name="subscribe">订阅</string>
     <string name="unsubscribe">退订</string>
     <string name="unable_to_change_subscription_state">更改订阅状态失败</string>
