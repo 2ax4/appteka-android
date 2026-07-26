@@ -30,6 +30,9 @@ interface SearchView {
 
     fun contentUpdated()
 
+    /** A fresh result set starts at the top, not where the last one was left. */
+    fun scrollToTop()
+
     /** Nothing searched for yet — the state that offers popular tags. */
     fun showPlaceholder()
 
@@ -142,6 +145,10 @@ class SearchViewImpl(
 
     override fun contentUpdated() {
         adapter.notifyDataSetChanged()
+    }
+
+    override fun scrollToTop() {
+        recycler.scrollToPosition(0)
     }
 
     override fun stopPullRefreshing() {

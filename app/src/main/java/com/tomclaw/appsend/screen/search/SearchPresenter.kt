@@ -199,10 +199,15 @@ class SearchPresenterImpl(
                 ?.apply { if (isNotEmpty()) last().hasProgress = false }
                 ?.plus(newItems) ?: newItems
         }
-        bindItems()
+        bindItems(scrollToTop = isNewSearch)
     }
 
-    private fun bindItems() {
+    /**
+     * [scrollToTop] only for a result set that replaces the previous
+     * one. Paging appends to what is on screen, and a restored state
+     * keeps the position the list was left at.
+     */
+    private fun bindItems(scrollToTop: Boolean = false) {
         val items = this.items
         if (items.isNullOrEmpty()) {
             // Nothing matched the criteria — that is a result, not an
@@ -213,6 +218,9 @@ class SearchPresenterImpl(
         adapterPresenter.get().onDataSourceChanged(items)
         view?.let {
             it.contentUpdated()
+            if (scrollToTop) {
+                it.scrollToTop()
+            }
             if (it.isPullRefreshing()) {
                 it.stopPullRefreshing()
             } else {
