@@ -11,6 +11,7 @@ import com.tomclaw.appsend.download.IDLE
 import com.tomclaw.appsend.screen.details.adapter.abi.AbiResourceProvider
 import com.tomclaw.appsend.screen.details.adapter.ItemListener
 import com.tomclaw.appsend.screen.details.adapter.play.PlaySecurityStatus
+import com.tomclaw.appsend.screen.details.adapter.scores.ScoresItem
 import com.tomclaw.appsend.screen.details.adapter.screenshot.ScreenshotItem
 import com.tomclaw.appsend.screen.details.adapter.status.StatusAction
 import com.tomclaw.appsend.core.permissions.CapabilityAction
@@ -666,6 +667,17 @@ class DetailsPresenterImpl(
     override fun onScoresClick() {
         details?.info?.appId?.let { appId ->
             router?.openRatingsScreen(appId)
+        }
+    }
+
+    override fun onPlayRatingClick() {
+        val position = items.indexOfFirst { it is ScoresItem }
+        if (position >= 0) {
+            view?.scrollToPosition(position)
+        } else {
+            // No breakdown to scroll to — the reviews themselves are the
+            // next best answer to "where does this score come from".
+            onScoresClick()
         }
     }
 

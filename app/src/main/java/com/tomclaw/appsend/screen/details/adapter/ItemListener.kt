@@ -12,6 +12,8 @@ interface ItemListener {
 
     fun onScoresClick()
 
+    fun onPlayRatingClick()
+
     fun onInstallClick()
 
     fun onLaunchClick(packageName: String)

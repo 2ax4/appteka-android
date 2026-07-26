@@ -63,12 +63,15 @@ interface PlayItemView : ItemView {
 
     fun setOnSecurityClickListener(listener: (() -> Unit)?)
 
+    fun setOnRatingClickListener(listener: (() -> Unit)?)
+
 }
 
 class PlayItemViewHolder(view: View) : BaseItemViewHolder(view), PlayItemView {
 
     private val context = view.context
     private val ratingContainer: View = view.findViewById(R.id.rating_container)
+    private val ratingClickable: View = view.findViewById(R.id.rating_clickable)
     private val ratingView: TextView = view.findViewById(R.id.rating_view)
     private val downloadsView: TextView = view.findViewById(R.id.downloads_view)
     private val favoritesContainer: View = view.findViewById(R.id.favorites_container)
@@ -212,6 +215,16 @@ class PlayItemViewHolder(view: View) : BaseItemViewHolder(view), PlayItemView {
         } else {
             securityClickable.isClickable = false
             securityClickable.setOnClickListener(null)
+        }
+    }
+
+    override fun setOnRatingClickListener(listener: (() -> Unit)?) {
+        if (listener != null) {
+            ratingClickable.isClickable = true
+            ratingClickable.setOnClickListener { listener.invoke() }
+        } else {
+            ratingClickable.isClickable = false
+            ratingClickable.setOnClickListener(null)
         }
     }
 

@@ -10,6 +10,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
@@ -38,6 +39,8 @@ interface DetailsView {
     fun showContent()
 
     fun contentUpdated()
+
+    fun scrollToPosition(position: Int)
 
     fun showVersionsDialog(items: List<VersionItem>)
 
@@ -253,6 +256,16 @@ class DetailsViewImpl(
     @SuppressLint("NotifyDataSetChanged")
     override fun contentUpdated() {
         adapter.notifyDataSetChanged()
+    }
+
+    override fun scrollToPosition(position: Int) {
+        // Snapping to the top rather than merely making the block visible:
+        // the caller is answering "show me this", not "scroll a bit".
+        val scroller = object : LinearSmoothScroller(context) {
+            override fun getVerticalSnapPreference() = SNAP_TO_START
+        }
+        scroller.targetPosition = position
+        layoutManager.startSmoothScroll(scroller)
     }
 
     override fun showVersionsDialog(items: List<VersionItem>) {

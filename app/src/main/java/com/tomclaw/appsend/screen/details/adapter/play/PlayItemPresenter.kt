@@ -13,7 +13,13 @@ class PlayItemPresenter(
 ) : ItemPresenter<PlayItemView, PlayItem> {
 
     override fun bindView(view: PlayItemView, item: PlayItem, position: Int) {
-        item.rating?.takeIf { it > 0 }?.let { view.showRating(it.toString()) } ?: view.hideRating()
+        item.rating?.takeIf { it > 0 }?.let {
+            view.showRating(it.toString())
+            view.setOnRatingClickListener { listener.onPlayRatingClick() }
+        } ?: run {
+            view.hideRating()
+            view.setOnRatingClickListener(null)
+        }
 
         view.setDownloads(item.downloads)
 
