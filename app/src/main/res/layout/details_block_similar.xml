@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingTop="16dp"
-    android:paddingBottom="16dp">
+    android:paddingBottom="10dp">
 
     <TextView
         android:layout_width="match_parent"
@@ -17,11 +17,15 @@
         android:textColor="?text_primary_color"
         android:textSize="16sp" />
 
+    <!--
+        No top margin and a short bottom padding: every app card brings its
+        own 12dp around the icon and 6dp under the name, which is what
+        spaces the shelf off the title and off the next block.
+    -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
