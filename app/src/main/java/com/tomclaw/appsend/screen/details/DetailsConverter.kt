@@ -344,11 +344,15 @@ class DetailsConverterImpl(
                 )
             }
             // Only the freshest reviews are on this screen and nothing hints
-            // at the rest, so the shortcut to the full list is spelled out.
-            items += AllRatingsItem(
-                id = id++,
-                rateCount = details.meta?.rateCount ?: details.ratingsList.size,
-            )
+            // at the rest, so the shortcut to the full list is spelled out —
+            // unless they all fit here already.
+            val rateCount = details.meta?.rateCount ?: details.ratingsList.size
+            if (rateCount > details.ratingsList.size) {
+                items += AllRatingsItem(
+                    id = id++,
+                    rateCount = rateCount,
+                )
+            }
         }
 
         return items
