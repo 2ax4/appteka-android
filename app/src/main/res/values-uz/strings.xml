@@ -312,6 +312,9 @@
     <string name="tags_block_title">Teglar</string>
     <string name="popular_tags_title">Ommabop teglar</string>
     <string name="search_hint">Nom, paket yoki dasturchi bo\'yicha qidirish</string>
+    <string name="search_history_title">So\'nggi qidiruvlar</string>
+    <string name="search_history_clear">Tozalash</string>
+    <string name="search_history_more">Ko\'proq</string>
     <string name="similar_apps_title">O\'xshash ilovalar</string>
     <string name="security_scanning_short">Skanerlash</string>
     <string name="security_safe_short">Xavfsiz</string>

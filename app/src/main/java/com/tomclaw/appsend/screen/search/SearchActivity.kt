@@ -3,6 +3,7 @@ package com.tomclaw.appsend.screen.search
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.tomclaw.appsend.util.adapter.ItemBinder
 import com.tomclaw.appsend.util.adapter.AdapterPresenter
@@ -32,6 +33,17 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
 
     private lateinit var searchView: SearchView
 
+    /**
+     * Back is the same step as the arrow in the toolbar. Enabled only
+     * while there is a search to give up, so that when there isn't the
+     * system runs its own predictive back out of the screen.
+     */
+    private val backCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            presenter.onBackPressed()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,6 +61,8 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
             .inject(activity = this)
 
         setContentView(R.layout.activity_search)
+
+        onBackPressedDispatcher.addCallback(backCallback)
 
         setupToolbar()
 
@@ -99,12 +113,12 @@ class SearchActivity : AppCompatActivity(), SearchPresenter.SearchRouter {
         outState.putParcelable(KEY_PRESENTER_STATE, ZipParcelable(presenter.saveState()))
     }
 
-    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            onBackPressedDispatcher.onBackPressed()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
+    override fun setBackCallbackEnabled(enabled: Boolean) {
+        backCallback.isEnabled = enabled
+    }
+
+    override fun leaveScreen() {
+        finish()
     }
 
     override fun openAppScreen(appId: String, title: String) {

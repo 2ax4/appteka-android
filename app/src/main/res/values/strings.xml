@@ -328,6 +328,9 @@
     <string name="search_add_tag">Tag “%1$s”</string>
     <string name="search_more_tags">More</string>
     <string name="search_hint">Search by name, package or developer</string>
+    <string name="search_history_title">Recent searches</string>
+    <string name="search_history_clear">Clear</string>
+    <string name="search_history_more">More</string>
     <string name="similar_apps_title">Similar apps</string>
     <string name="security_scanning_short">Scanning</string>
     <string name="security_safe_short">Safe</string>

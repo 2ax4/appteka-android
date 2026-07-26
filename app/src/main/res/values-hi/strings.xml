@@ -313,6 +313,9 @@
     <string name="tags_block_title">टैग</string>
     <string name="popular_tags_title">लोकप्रिय टैग</string>
     <string name="search_hint">नाम, पैकेज या डेवलपर से खोजें</string>
+    <string name="search_history_title">हाल की खोजें</string>
+    <string name="search_history_clear">साफ़ करें</string>
+    <string name="search_history_more">और</string>
     <string name="similar_apps_title">समान ऐप्स</string>
     <string name="security_scanning_short">स्कैनिंग</string>
     <string name="security_safe_short">सुरक्षित</string>

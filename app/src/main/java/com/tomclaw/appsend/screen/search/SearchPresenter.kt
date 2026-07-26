@@ -12,6 +12,7 @@ import com.tomclaw.appsend.util.SchedulersFactory
 import com.tomclaw.appsend.util.getParcelableArrayListCompat
 import com.tomclaw.appsend.util.retryWhenNonAuthErrors
 import dagger.Lazy
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.plusAssign
@@ -31,9 +32,23 @@ interface SearchPresenter : ItemListener {
 
     fun invalidateSearch()
 
+    /** Back, however it was asked for: the arrow or the system. */
+    fun onBackPressed()
+
     interface SearchRouter {
 
         fun openAppScreen(appId: String, title: String)
+
+        /**
+         * Whether back has criteria to give up before it gives up the
+         * screen. The system asks before the gesture starts, so it has
+         * to be told as the criteria change rather than when back
+         * arrives — otherwise it previews an exit that isn't going to
+         * happen.
+         */
+        fun setBackCallbackEnabled(enabled: Boolean)
+
+        fun leaveScreen()
 
     }
 
@@ -79,12 +94,24 @@ class SearchPresenterImpl(
     private var popularTagsShown: Int =
         state?.getInt(KEY_POPULAR_TAGS_SHOWN, POPULAR_TAGS_PAGE) ?: POPULAR_TAGS_PAGE
 
+    private var history: List<SearchHistoryEntry> = emptyList()
+
+    /** Likewise, how much of the history has been asked for. */
+    private var historyShown: Int =
+        state?.getInt(KEY_HISTORY_SHOWN, HISTORY_PAGE) ?: HISTORY_PAGE
+
+    /** Restarted by every search. See [rememberSearch]. */
+    private var rememberDisposable: Disposable? = null
+
     private val hasCriteria: Boolean
         get() = query.isNotBlank() || tags.isNotEmpty()
 
     override fun attachView(view: SearchView) {
         this.view = view
 
+        subscriptions += view.navigationClicks().subscribe {
+            onBackPressed()
+        }
         subscriptions += view.retryClicks().subscribe {
             performSearch()
         }
@@ -127,12 +154,34 @@ class SearchPresenterImpl(
             analytics.trackEvent("search-more-tags")
             bindTags()
         }
+        subscriptions += view.searchActions().subscribe {
+            analytics.trackEvent("search-ime-action")
+            rememberSearch()
+        }
+        subscriptions += view.historyClicks().subscribe { item ->
+            analytics.trackEvent("search-history-item")
+            applyHistoryItem(item)
+        }
+        subscriptions += view.historyRemoveClicks().subscribe { item ->
+            analytics.trackEvent("search-history-remove")
+            bindHistoryFrom(searchInteractor.removeFromHistory(item.toEntry()))
+        }
+        subscriptions += view.historyClearClicks().subscribe {
+            analytics.trackEvent("search-history-clear")
+            bindHistoryFrom(searchInteractor.clearHistory())
+        }
+        subscriptions += view.moreHistoryClicks().subscribe {
+            historyShown += HISTORY_PAGE_MORE
+            analytics.trackEvent("search-more-history")
+            bindHistory()
+        }
 
         if (query.isNotEmpty()) {
             view.setQueryText(query)
         }
         bindTags()
         loadPopularTags()
+        bindHistoryFrom(searchInteractor.loadHistory())
 
         when {
             isError -> onError()
@@ -145,12 +194,15 @@ class SearchPresenterImpl(
     override fun detachView() {
         searchDisposable?.dispose()
         searchDisposable = null
+        rememberDisposable?.dispose()
+        rememberDisposable = null
         subscriptions.clear()
         this.view = null
     }
 
     override fun attachRouter(router: SearchPresenter.SearchRouter) {
         this.router = router
+        router.setBackCallbackEnabled(hasCriteria)
     }
 
     override fun detachRouter() {
@@ -164,6 +216,9 @@ class SearchPresenterImpl(
         putStringArrayList(KEY_TAGS, ArrayList(tags))
         popularTags?.let { putStringArrayList(KEY_POPULAR_TAGS, ArrayList(it)) }
         putInt(KEY_POPULAR_TAGS_SHOWN, popularTagsShown)
+        // The history itself is on disk, only how much of it was asked
+        // for is worth carrying across a rotation.
+        putInt(KEY_HISTORY_SHOWN, historyShown)
     }
 
     override fun invalidateSearch() {
@@ -189,9 +244,28 @@ class SearchPresenterImpl(
         onCriteriaChanged()
     }
 
+    /**
+     * Results are somewhere the visitor got to, not somewhere they
+     * arrived from, so backing out of them is a step of its own: the
+     * criteria go first and the screen only after that. Otherwise the
+     * way back from a result is out of search altogether.
+     */
+    override fun onBackPressed() {
+        if (!hasCriteria) {
+            router?.leaveScreen()
+            return
+        }
+        analytics.trackEvent("search-reset")
+        query = ""
+        tags = emptyList()
+        view?.setQueryText("")
+        onCriteriaChanged()
+    }
+
     /** The one funnel: whatever changed the criteria, this decides what happens next. */
     private fun onCriteriaChanged() {
         bindTags()
+        router?.setBackCallbackEnabled(hasCriteria)
         if (hasCriteria) performSearch() else showPlaceholder()
     }
 
@@ -245,6 +319,7 @@ class SearchPresenterImpl(
             return
         }
 
+        scheduleRemember()
         items = null
 
         // Criteria now change one tag at a time, so a search can well
@@ -350,6 +425,73 @@ class SearchPresenterImpl(
             )
     }
 
+    /**
+     * Every keystroke runs a search of its own, so remembering them all
+     * would fill the history with the way to a query rather than with
+     * the query. Only a search left standing this long is taken to have
+     * been meant; the other two ways of meaning one are pressing the
+     * search key and acting on what it found.
+     */
+    private fun scheduleRemember() {
+        rememberDisposable?.dispose()
+        rememberDisposable = Observable
+            .timer(HISTORY_DELAY_MS, TimeUnit.MILLISECONDS, schedulers.mainThread())
+            .subscribe { rememberSearch() }
+    }
+
+    /** Worth offering again only if it came to something. */
+    private fun rememberSearch() {
+        if (isError || items.isNullOrEmpty()) return
+        bindHistoryFrom(searchInteractor.addToHistory(query, tags))
+    }
+
+    /** A remembered search is restored whole — the text and the tags it was made of. */
+    private fun applyHistoryItem(item: SearchHistoryItem) {
+        query = item.query
+        tags = item.tags
+        view?.setQueryText(item.query)
+        onCriteriaChanged()
+    }
+
+    private fun bindHistory() {
+        val shown = history.take(historyShown)
+        view?.showHistory(shown.map { it.toItem() }, hasMore = history.size > shown.size)
+    }
+
+    /**
+     * A search made of tags alone is those tags, so on its row they
+     * lead rather than trail a line with nothing above it.
+     */
+    private fun SearchHistoryEntry.toItem(): SearchHistoryItem {
+        val joined = tags.joinToString(separator = ", ")
+        return SearchHistoryItem(
+            query = query,
+            tags = tags,
+            title = query.ifEmpty { joined },
+            subtitle = joined.takeIf { query.isNotEmpty() && tags.isNotEmpty() },
+        )
+    }
+
+    private fun SearchHistoryItem.toEntry() = SearchHistoryEntry(query, tags)
+
+    /**
+     * Reading and writing the history both answer with what it now
+     * holds, so both end up on screen the same way. Like the tag
+     * suggestions it is a convenience: a file that cannot be read or
+     * written leaves the screen working without it.
+     */
+    private fun bindHistoryFrom(source: Observable<List<SearchHistoryEntry>>) {
+        subscriptions += source
+            .observeOn(schedulers.mainThread())
+            .subscribe(
+                { entries ->
+                    history = entries
+                    bindHistory()
+                },
+                { }
+            )
+    }
+
     private fun onError() {
         this.isError = true
         view?.showError()
@@ -357,6 +499,8 @@ class SearchPresenterImpl(
 
     override fun onItemClick(item: Item) {
         val app = items?.find { it.id == item.id } ?: return
+        // Opening something out of the results is what a search was for.
+        rememberSearch()
         router?.openAppScreen(app.appId, app.title)
     }
 
@@ -373,7 +517,17 @@ private const val KEY_QUERY = "query"
 private const val KEY_TAGS = "tags"
 private const val KEY_POPULAR_TAGS = "popular_tags"
 private const val KEY_POPULAR_TAGS_SHOWN = "popular_tags_shown"
+private const val KEY_HISTORY_SHOWN = "history_shown"
 private const val DEBOUNCE_DELAY_MS = 500L
+
+// Long enough that a query typed through is remembered as the query and
+// not as the letters on the way to it.
+private const val HISTORY_DELAY_MS = 4000L
+
+// A few rows sit above the popular tags without pushing them off the
+// placeholder, and the rest of the history is there for the asking.
+private const val HISTORY_PAGE = 4
+private const val HISTORY_PAGE_MORE = 8
 
 // About a screenful of chips, so that asking for more is answered with
 // more to look at rather than with a line or two appearing.

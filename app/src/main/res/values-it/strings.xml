@@ -317,6 +317,9 @@
     <string name="tags_block_title">Tag</string>
     <string name="popular_tags_title">Tag popolari</string>
     <string name="search_hint">Cerca per nome, pacchetto o sviluppatore</string>
+    <string name="search_history_title">Ricerche recenti</string>
+    <string name="search_history_clear">Cancella</string>
+    <string name="search_history_more">Altro</string>
     <string name="similar_apps_title">App simili</string>
     <string name="security_scanning_short">Scansione</string>
     <string name="security_safe_short">Sicuro</string>

@@ -306,6 +306,9 @@
     <string name="tags_block_title">标签</string>
     <string name="popular_tags_title">热门标签</string>
     <string name="search_hint">按名称、包名或开发者搜索</string>
+    <string name="search_history_title">最近搜索</string>
+    <string name="search_history_clear">清除</string>
+    <string name="search_history_more">更多</string>
     <string name="similar_apps_title">类似应用</string>
     <string name="security_scanning_short">扫描中</string>
     <string name="security_safe_short">安全</string>

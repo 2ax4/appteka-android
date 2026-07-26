@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    One search made before. Tapping it restores the search whole, so the
+    row carries both what was typed and what it was filtered by — the
+    tags on a second line, since a filtered search reads as a search
+    first and a filter second.
+
+    The row runs the full width and carries its own side inset, so that
+    its touch feedback reaches the edges of the screen. Nothing is
+    clipped to it either, so the borderless ripple of the close icon can
+    spread past the icon and into that inset.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="8dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_history"
+        app:tint="?attr/text_secondary_color" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/history_query"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="?attr/text_primary_color"
+            android:textSize="16sp"
+            tools:text="file manager" />
+
+        <TextView
+            android:id="@+id/history_tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="?attr/text_secondary_color"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="tools, root"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <!-- Padded out to a touch target of its own, and offset back so the
+         icon itself still lines up with the edge of the section. -->
+    <ImageView
+        android:id="@+id/history_remove"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="-8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="@string/remove"
+        android:focusable="true"
+        android:padding="8dp"
+        android:src="@drawable/ic_close"
+        app:tint="?attr/text_secondary_color" />
+
+</LinearLayout>

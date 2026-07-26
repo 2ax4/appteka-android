@@ -318,6 +318,9 @@
     <string name="tags_block_title">Tags</string>
     <string name="popular_tags_title">Tags populares</string>
     <string name="search_hint">Pesquisar por nome, pacote ou desenvolvedor</string>
+    <string name="search_history_title">Buscas recentes</string>
+    <string name="search_history_clear">Limpar</string>
+    <string name="search_history_more">Mais</string>
     <string name="similar_apps_title">Aplicativos semelhantes</string>
     <string name="security_scanning_short">Verificando</string>
     <string name="security_safe_short">Seguro</string>

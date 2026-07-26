@@ -306,6 +306,9 @@
     <string name="tags_block_title">Thẻ</string>
     <string name="popular_tags_title">Thẻ phổ biến</string>
     <string name="search_hint">Tìm theo tên, gói hoặc nhà phát triển</string>
+    <string name="search_history_title">Tìm kiếm gần đây</string>
+    <string name="search_history_clear">Xóa</string>
+    <string name="search_history_more">Thêm</string>
     <string name="similar_apps_title">Ứng dụng tương tự</string>
     <string name="security_scanning_short">Đang quét</string>
     <string name="security_safe_short">An toàn</string>

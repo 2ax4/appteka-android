@@ -340,6 +340,9 @@
     <string name="tags_block_title">الوسوم</string>
     <string name="popular_tags_title">الوسوم الشائعة</string>
     <string name="search_hint">ابحث بالاسم أو الحزمة أو المطور</string>
+    <string name="search_history_title">عمليات البحث الأخيرة</string>
+    <string name="search_history_clear">مسح</string>
+    <string name="search_history_more">المزيد</string>
     <string name="similar_apps_title">تطبيقات مشابهة</string>
     <string name="security_scanning_short">فحص</string>
     <string name="security_safe_short">آمن</string>

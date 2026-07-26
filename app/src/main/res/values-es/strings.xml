@@ -317,6 +317,9 @@
     <string name="tags_block_title">Etiquetas</string>
     <string name="popular_tags_title">Etiquetas populares</string>
     <string name="search_hint">Buscar por nombre, paquete o desarrollador</string>
+    <string name="search_history_title">Búsquedas recientes</string>
+    <string name="search_history_clear">Borrar</string>
+    <string name="search_history_more">Más</string>
     <string name="similar_apps_title">Aplicaciones similares</string>
     <string name="security_scanning_short">Verificando</string>
     <string name="security_safe_short">Seguro</string>

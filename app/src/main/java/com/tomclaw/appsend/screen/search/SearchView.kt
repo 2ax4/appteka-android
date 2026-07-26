@@ -1,11 +1,16 @@
 package com.tomclaw.appsend.screen.search
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.ViewFlipper
 import androidx.annotation.LayoutRes
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +22,7 @@ import com.tomclaw.appsend.util.adapter.SimpleRecyclerAdapter
 import com.jakewharton.rxrelay3.PublishRelay
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.util.applyBottomInsets
+import com.tomclaw.appsend.util.bind
 import com.tomclaw.appsend.util.changes
 import com.tomclaw.appsend.util.clicks
 import com.tomclaw.appsend.util.hideWithAlphaAnimation
@@ -60,11 +66,23 @@ interface SearchView {
     /** [hasMore] offers the next batch of the vocabulary, if any is left. */
     fun showPopularTags(tags: List<String>, hasMore: Boolean)
 
+    /**
+     * Searches made before, newest first, above the tags on the
+     * placeholder. [hasMore] offers the next batch of them. An empty
+     * list takes the whole section away rather than leaving a heading.
+     */
+    fun showHistory(items: List<SearchHistoryItem>, hasMore: Boolean)
+
+    fun navigationClicks(): Observable<Unit>
+
     fun retryClicks(): Observable<Unit>
 
     fun refreshClicks(): Observable<Unit>
 
     fun queryTextChanges(): Observable<String>
+
+    /** The search key on the keyboard: this query, and no more typing. */
+    fun searchActions(): Observable<Unit>
 
     fun tagRemoveClicks(): Observable<String>
 
@@ -76,6 +94,14 @@ interface SearchView {
 
     fun moreTagsClicks(): Observable<Unit>
 
+    fun historyClicks(): Observable<SearchHistoryItem>
+
+    fun historyRemoveClicks(): Observable<SearchHistoryItem>
+
+    fun historyClearClicks(): Observable<Unit>
+
+    fun moreHistoryClicks(): Observable<Unit>
+
 }
 
 class SearchViewImpl(
@@ -84,6 +110,7 @@ class SearchViewImpl(
 ) : SearchView {
 
     private val context = rootView.context
+    private val toolbar: Toolbar = rootView.findViewById(R.id.toolbar)
     private val refresher: SwipeRefreshLayout = rootView.findViewById(R.id.swipe_refresh)
     private val flipper: ViewFlipper = rootView.findViewById(R.id.view_flipper)
     private val overlayProgress: View = rootView.findViewById(R.id.overlay_progress)
@@ -95,15 +122,25 @@ class SearchViewImpl(
     private val tagsGroup: ChipGroup = rootView.findViewById(R.id.tags)
     private val popularTagsTitle: View = rootView.findViewById(R.id.popular_tags_title)
     private val popularTags: ChipGroup = rootView.findViewById(R.id.popular_tags)
+    private val historyBlock: View = rootView.findViewById(R.id.history_block)
+    private val historyItems: ViewGroup = rootView.findViewById(R.id.history_items)
+    private val historyClear: View = rootView.findViewById(R.id.history_clear)
+    private val historyMore: View = rootView.findViewById(R.id.history_more)
 
+    private val navigationRelay = PublishRelay.create<Unit>()
     private val retryRelay = PublishRelay.create<Unit>()
     private val refreshRelay = PublishRelay.create<Unit>()
     private val queryTextRelay = PublishRelay.create<String>()
+    private val searchActionRelay = PublishRelay.create<Unit>()
     private val tagRemoveRelay = PublishRelay.create<String>()
     private val tagSuggestionRelay = PublishRelay.create<String>()
     private val customTagRelay = PublishRelay.create<String>()
     private val popularTagRelay = PublishRelay.create<String>()
     private val moreTagsRelay = PublishRelay.create<Unit>()
+    private val historyRelay = PublishRelay.create<SearchHistoryItem>()
+    private val historyRemoveRelay = PublishRelay.create<SearchHistoryItem>()
+    private val historyClearRelay = PublishRelay.create<Unit>()
+    private val moreHistoryRelay = PublishRelay.create<Unit>()
 
     init {
         val orientation = RecyclerView.VERTICAL
@@ -114,11 +151,28 @@ class SearchViewImpl(
         recycler.itemAnimator = DefaultItemAnimator()
         recycler.itemAnimator?.changeDuration = DURATION_MEDIUM
 
+        toolbar.setNavigationOnClickListener { navigationRelay.accept(Unit) }
+
         refresher.setOnRefreshListener { refreshRelay.accept(Unit) }
 
         queryEdit.changes { text ->
             queryTextRelay.accept(text)
         }
+        queryEdit.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                // The results are already below, put there by the
+                // debounce — so the search key has nothing left to do
+                // but get the keyboard out of their way.
+                hideKeyboard()
+                searchActionRelay.accept(Unit)
+                true
+            } else {
+                false
+            }
+        }
+
+        historyClear.clicks(historyClearRelay)
+        historyMore.clicks(moreHistoryRelay)
 
         // Insets: the list keeps its last row clear of the
         // navigation bar while still scrolling underneath it.
@@ -219,6 +273,32 @@ class SearchViewImpl(
         }
     }
 
+    override fun showHistory(items: List<SearchHistoryItem>, hasMore: Boolean) {
+        historyBlock.isVisible = items.isNotEmpty()
+        historyMore.isVisible = hasMore
+        historyItems.removeAllViews()
+        for (item in items) {
+            historyItems.addView(inflateHistoryItem(item))
+        }
+    }
+
+    private fun inflateHistoryItem(item: SearchHistoryItem): View {
+        val view = LayoutInflater.from(context)
+            .inflate(R.layout.search_history_item, historyItems, false)
+        view.findViewById<TextView>(R.id.history_query).text = item.title
+        view.findViewById<TextView>(R.id.history_tags).bind(item.subtitle)
+        view.setOnClickListener { historyRelay.accept(item) }
+        view.findViewById<View>(R.id.history_remove).setOnClickListener {
+            historyRemoveRelay.accept(item)
+        }
+        return view
+    }
+
+    private fun hideKeyboard() {
+        val manager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        manager.hideSoftInputFromWindow(queryEdit.windowToken, 0)
+    }
+
     private fun inflateChip(@LayoutRes layout: Int, group: ChipGroup, text: String): Chip {
         val chip = LayoutInflater.from(context).inflate(layout, group, false) as Chip
         chip.text = text
@@ -228,11 +308,15 @@ class SearchViewImpl(
         return chip
     }
 
+    override fun navigationClicks(): Observable<Unit> = navigationRelay
+
     override fun retryClicks(): Observable<Unit> = retryRelay
 
     override fun refreshClicks(): Observable<Unit> = refreshRelay
 
     override fun queryTextChanges(): Observable<String> = queryTextRelay
+
+    override fun searchActions(): Observable<Unit> = searchActionRelay
 
     override fun tagRemoveClicks(): Observable<String> = tagRemoveRelay
 
@@ -244,7 +328,27 @@ class SearchViewImpl(
 
     override fun moreTagsClicks(): Observable<Unit> = moreTagsRelay
 
+    override fun historyClicks(): Observable<SearchHistoryItem> = historyRelay
+
+    override fun historyRemoveClicks(): Observable<SearchHistoryItem> = historyRemoveRelay
+
+    override fun historyClearClicks(): Observable<Unit> = historyClearRelay
+
+    override fun moreHistoryClicks(): Observable<Unit> = moreHistoryRelay
+
 }
+
+/**
+ * One row of the history, as the placeholder shows it. [title] and
+ * [subtitle] are the row's two lines, already decided on; [query] and
+ * [tags] are the criteria it restores when it is tapped.
+ */
+data class SearchHistoryItem(
+    val query: String,
+    val tags: List<String>,
+    val title: String,
+    val subtitle: String?,
+)
 
 private const val DURATION_MEDIUM = 300L
 

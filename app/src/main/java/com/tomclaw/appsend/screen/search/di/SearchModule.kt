@@ -2,6 +2,7 @@ package com.tomclaw.appsend.screen.search.di
 
 import android.content.Context
 import android.os.Bundle
+import com.google.gson.Gson
 import com.tomclaw.appsend.util.adapter.ItemBinder
 import com.tomclaw.appsend.util.adapter.AdapterPresenter
 import com.tomclaw.appsend.util.adapter.SimpleAdapterPresenter
@@ -9,6 +10,9 @@ import com.tomclaw.appsend.util.adapter.ItemBlueprint
 import com.tomclaw.appsend.categories.CategoryConverter
 import com.tomclaw.appsend.categories.CategoryConverterImpl
 import com.tomclaw.appsend.core.StoreApi
+import com.tomclaw.appsend.di.USER_DIR
+import com.tomclaw.appsend.screen.search.SearchHistoryStorage
+import com.tomclaw.appsend.screen.search.SearchHistoryStorageImpl
 import com.tomclaw.appsend.screen.search.SearchInteractor
 import com.tomclaw.appsend.screen.search.SearchInteractorImpl
 import com.tomclaw.appsend.screen.search.SearchPresenter
@@ -31,7 +35,9 @@ import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
+import java.io.File
 import java.util.Locale
+import javax.inject.Named
 
 @Module
 class SearchModule(
@@ -63,9 +69,17 @@ class SearchModule(
     @PerActivity
     internal fun provideInteractor(
         api: StoreApi,
+        historyStorage: SearchHistoryStorage,
         locale: Locale,
         schedulers: SchedulersFactory
-    ): SearchInteractor = SearchInteractorImpl(api, locale, schedulers)
+    ): SearchInteractor = SearchInteractorImpl(api, historyStorage, locale, schedulers)
+
+    @Provides
+    @PerActivity
+    internal fun provideHistoryStorage(
+        @Named(USER_DIR) filesDir: File,
+        gson: Gson
+    ): SearchHistoryStorage = SearchHistoryStorageImpl(filesDir, gson)
 
     @Provides
     @PerActivity

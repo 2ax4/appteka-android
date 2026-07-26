@@ -314,6 +314,9 @@
     <string name="tags_block_title">برچسب‌ها</string>
     <string name="popular_tags_title">برچسب‌های پرطرفدار</string>
     <string name="search_hint">جستجو بر اساس نام، بسته یا توسعه‌دهنده</string>
+    <string name="search_history_title">جستجوهای اخیر</string>
+    <string name="search_history_clear">پاک کردن</string>
+    <string name="search_history_more">بیشتر</string>
     <string name="similar_apps_title">برنامه‌های مشابه</string>
     <string name="security_scanning_short">در حال اسکن</string>
     <string name="security_safe_short">امن</string>
