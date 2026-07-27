@@ -97,18 +97,29 @@ class MediaStoreApkStorage(
 
     override fun getInstallUri(fileName: String): Uri? {
         // Use cached URI first (same URI valid after commit rename), fallback to query
-        val uri = apkUris[fileName]
-            ?: findFileUri("$fileName.$APK_EXTENSION")
-            ?: return null
+        val cached = apkUris[fileName]
+        if (cached != null && isReadable(cached)) {
+            return cached
+        }
 
+        // A cached URI that won't open is not proof the file is gone — it can
+        // just be stale. Reporting "no file" straight away is what left the
+        // caller with nothing to install until it asked a second time.
+        apkUris.remove(fileName)
+
+        val queried = findFileUri("$fileName.$APK_EXTENSION") ?: return null
+        if (!isReadable(queried)) {
+            return null
+        }
+        apkUris[fileName] = queried
+        return queried
+    }
+
+    private fun isReadable(uri: Uri): Boolean {
         return try {
-            // Verify file is accessible
-            contentResolver.openInputStream(uri)?.close()
-            uri
+            contentResolver.openInputStream(uri)?.use { true } ?: false
         } catch (ex: Throwable) {
-            // URI invalid (file deleted externally), clear from cache
-            apkUris.remove(fileName)
-            null
+            false
         }
     }
 
