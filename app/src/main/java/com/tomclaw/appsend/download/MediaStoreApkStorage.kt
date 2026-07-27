@@ -28,16 +28,18 @@ class MediaStoreApkStorage(
     }
 
     /**
-     * Session-only URI cache. Stores URIs from insert() to avoid query delays.
-     * - Populated in openWrite() and openAppend()
-     * - Used in commit() and getInstallUri()
-     * - Cleared in delete(), deleteTmp(), clearAll()
-     * - Lost on app restart (intentionally - MediaStore will be indexed by then)
+     * Session-only URI caches, kept to avoid a MediaStore query per lookup and
+     * lost on app restart (MediaStore will be indexed by then).
      *
-     * Written from the download executor and read from the main thread, so it
-     * has to be concurrent the same way DownloadManager's own maps are.
+     * The half-written file and the finished one are deliberately kept apart:
+     * a single cache made a download in progress answer exists() and hand its
+     * partial URI to the installer, which then failed to parse the package.
+     *
+     * Written from the download executor and read from the main thread, so they
+     * have to be concurrent the same way DownloadManager's own maps are.
      */
-    private val sessionUris = ConcurrentHashMap<String, Uri>()
+    private val tmpUris = ConcurrentHashMap<String, Uri>()
+    private val apkUris = ConcurrentHashMap<String, Uri>()
 
     override fun openWrite(fileName: String): OutputStream {
         deleteTmp(fileName)
@@ -51,7 +53,7 @@ class MediaStoreApkStorage(
         val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
             ?: throw IllegalStateException("Failed to create file in MediaStore")
 
-        sessionUris[fileName] = uri
+        tmpUris[fileName] = uri
 
         return contentResolver.openOutputStream(uri)
             ?: throw IllegalStateException("Failed to open output stream")
@@ -59,7 +61,7 @@ class MediaStoreApkStorage(
 
     override fun commit(fileName: String): Boolean {
         // Use cached URI first (from openWrite/openAppend), fallback to query (for resume after restart)
-        val uri = sessionUris[fileName]
+        val uri = tmpUris[fileName]
             ?: findFileUri("$fileName.$APK_EXTENSION.$TMP_EXTENSION")
             ?: return false
 
@@ -73,9 +75,10 @@ class MediaStoreApkStorage(
         return try {
             val success = contentResolver.update(uri, updateValues, null, null) > 0
             if (success) {
-                // URI remains valid after rename (same ID, different name)
-                // Re-add to sessionUris for getInstallUri()
-                sessionUris[fileName] = uri
+                // The URI survives the rename (same id, different name), so it
+                // moves over to the finished side rather than being re-queried
+                tmpUris.remove(fileName)
+                apkUris[fileName] = uri
             }
             success
         } catch (ex: Throwable) {
@@ -84,7 +87,7 @@ class MediaStoreApkStorage(
     }
 
     override fun openRead(fileName: String): InputStream? {
-        val uri = sessionUris[fileName] ?: findFileUri("$fileName.$APK_EXTENSION") ?: return null
+        val uri = apkUris[fileName] ?: findFileUri("$fileName.$APK_EXTENSION") ?: return null
         return try {
             contentResolver.openInputStream(uri)
         } catch (ex: Throwable) {
@@ -94,7 +97,7 @@ class MediaStoreApkStorage(
 
     override fun getInstallUri(fileName: String): Uri? {
         // Use cached URI first (same URI valid after commit rename), fallback to query
-        val uri = sessionUris[fileName]
+        val uri = apkUris[fileName]
             ?: findFileUri("$fileName.$APK_EXTENSION")
             ?: return null
 
@@ -104,18 +107,17 @@ class MediaStoreApkStorage(
             uri
         } catch (ex: Throwable) {
             // URI invalid (file deleted externally), clear from cache
-            sessionUris.remove(fileName)
+            apkUris.remove(fileName)
             null
         }
     }
 
-    override fun exists(fileName: String): Boolean {
-        return sessionUris.containsKey(fileName)
-                || findFileUri("$fileName.$APK_EXTENSION") != null
-    }
+    // Only a committed file counts, and only while it is still readable — a
+    // caller takes a true here as "no need to download, go straight to install"
+    override fun exists(fileName: String): Boolean = getInstallUri(fileName) != null
 
     override fun delete(fileName: String): Boolean {
-        sessionUris.remove(fileName)
+        apkUris.remove(fileName)
         File(cacheDir, "$fileName.$APK_EXTENSION").delete()
         val uri = findFileUri("$fileName.$APK_EXTENSION") ?: return false
         return try {
@@ -126,7 +128,7 @@ class MediaStoreApkStorage(
     }
 
     override fun deleteTmp(fileName: String): Boolean {
-        sessionUris.remove(fileName)
+        tmpUris.remove(fileName)
         val uri = findFileUri("$fileName.$APK_EXTENSION.$TMP_EXTENSION") ?: return false
         return try {
             contentResolver.delete(uri, null, null) > 0
@@ -160,7 +162,7 @@ class MediaStoreApkStorage(
         }
 
         // Store URI for subsequent commit() call
-        sessionUris[fileName] = uri
+        tmpUris[fileName] = uri
 
         return contentResolver.openOutputStream(uri, "wa")
             ?: throw IllegalStateException("Failed to open append stream")
@@ -225,7 +227,8 @@ class MediaStoreApkStorage(
     }
 
     override fun clearAll(): Int {
-        sessionUris.clear()
+        tmpUris.clear()
+        apkUris.clear()
         cacheDir.listFiles()?.forEach { it.delete() }
 
         val selection =
@@ -266,7 +269,7 @@ class MediaStoreApkStorage(
     }
 
     override fun getFilePath(fileName: String): String? {
-        val uri = sessionUris[fileName] ?: findFileUri("$fileName.$APK_EXTENSION") ?: return null
+        val uri = apkUris[fileName] ?: findFileUri("$fileName.$APK_EXTENSION") ?: return null
 
         val cachedFile = File(cacheDir, "$fileName.$APK_EXTENSION")
         if (cachedFile.exists()) {
