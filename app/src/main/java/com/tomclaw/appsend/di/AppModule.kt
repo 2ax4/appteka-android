@@ -206,8 +206,8 @@ class AppModule(private val app: Application) {
 
     @Provides
     @Singleton
-    internal fun provideUploadNotifications(): UploadNotifications =
-        UploadNotificationsImpl(app)
+    internal fun provideUploadNotifications(analytics: Analytics): UploadNotifications =
+        UploadNotificationsImpl(app, analytics)
 
     @Provides
     @Singleton

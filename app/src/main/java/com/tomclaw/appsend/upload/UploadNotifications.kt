@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.tomclaw.appsend.R
 import com.tomclaw.appsend.screen.upload.createUploadActivityIntent
+import com.tomclaw.appsend.util.Analytics
 import com.tomclaw.appsend.util.GROUP_NOTIFICATIONS
 import com.tomclaw.appsend.util.NotificationIconHolder
 import com.tomclaw.appsend.util.crc32
@@ -39,7 +40,10 @@ interface UploadNotifications {
 
 }
 
-class UploadNotificationsImpl(private val context: Context) : UploadNotifications {
+class UploadNotificationsImpl(
+    private val context: Context,
+    private val analytics: Analytics,
+) : UploadNotifications {
 
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -113,7 +117,7 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
         // itself even when the relay already cached that status before we subscribed
         observable.takeUntil { state ->
             state.status in TERMINAL_UPLOAD_STATUSES
-        }.subscribe { state ->
+        }.subscribe({ state ->
             when (state.status) {
                 UploadStatus.AWAIT -> {
                     val notification = notificationBuilder
@@ -198,7 +202,15 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                     notificationManager.notify(UPLOAD_NOTIFICATION_ID, notification)
                 }
             }
-        }
+        }, { error ->
+            // Without this the stream would tear down the subscriber and leave the
+            // foreground service with nothing left to stop it
+            println("[upload notification] Error: $error")
+            analytics.trackException(error, mapOf("reason" to "Upload status subscription error"))
+            notificationManager.cancel(notificationId)
+            notificationManager.cancel(UPLOAD_NOTIFICATION_ID)
+            stop()
+        })
     }
 
     private fun createNotificationChannel(
