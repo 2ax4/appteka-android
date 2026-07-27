@@ -4,6 +4,7 @@ import android.net.Uri
 import com.jakewharton.rxrelay3.BehaviorRelay
 import com.tomclaw.appsend.core.ProxyConfigProvider
 import com.tomclaw.appsend.core.UserAgentProvider
+import com.tomclaw.appsend.util.FileHelper.escapeFileSymbols
 import com.tomclaw.appsend.util.safeClose
 import com.tomclaw.appsend.util.sha1
 import io.reactivex.rxjava3.core.Observable
@@ -382,14 +383,6 @@ class DownloadManagerImpl(
         return true
     }
 
-    private fun escapeFileSymbols(name: String): String {
-        var fileName = name
-        for (symbol in RESERVED_CHARS) {
-            fileName = fileName.replace(symbol[0], '_')
-        }
-        return fileName
-    }
-
 }
 
 const val GET = "GET"
@@ -407,8 +400,6 @@ const val COMPLETED: Int = 101
 const val ERROR: Int = -40
 
 private const val BUFFER_SIZE = 1 * 1024 * 1024
-
-private val RESERVED_CHARS = arrayOf("|", "\\", "/", "?", "*", "<", "\"", ":", ">")
 
 enum class DownloadResult {
     SUCCESS,
