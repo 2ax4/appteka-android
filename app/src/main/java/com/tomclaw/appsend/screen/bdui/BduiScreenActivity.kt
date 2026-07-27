@@ -1,5 +1,6 @@
 package com.tomclaw.appsend.screen.bdui
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -136,9 +137,23 @@ class BduiScreenActivity : AppCompatActivity(), BduiScreenPresenter.BduiScreenRo
         startActivity(intent)
     }
 
+    /**
+     * The url comes from the server, so the scheme is checked rather than
+     * trusted: anything else would let a screen definition fire off intents
+     * this activity never meant to send.
+     */
     override fun handleOpenUrl(url: String, external: Boolean) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(intent)
+        val uri = Uri.parse(url)
+        if (uri.scheme?.lowercase() !in BROWSABLE_SCHEMES) {
+            println("[bdui] Refused to open $url")
+            return
+        }
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        try {
+            startActivity(intent)
+        } catch (ex: ActivityNotFoundException) {
+            println("[bdui] Nothing handles $url")
+        }
     }
 
     override fun handleShare(text: String, title: String?) {
@@ -349,6 +364,8 @@ fun createBduiScreenActivityIntent(
 ): Intent = Intent(context, BduiScreenActivity::class.java)
     .putExtra(EXTRA_URL, url)
     .putExtra(EXTRA_TITLE, title)
+
+private val BROWSABLE_SCHEMES = setOf("http", "https")
 
 private const val EXTRA_URL = "url"
 private const val EXTRA_TITLE = "title"
