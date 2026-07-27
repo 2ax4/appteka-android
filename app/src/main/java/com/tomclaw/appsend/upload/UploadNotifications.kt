@@ -1,12 +1,11 @@
 package com.tomclaw.appsend.upload
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -85,7 +84,7 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
 
         val label = apk.packageInfo.getLabel(context.packageManager)
 
-        val uploadingIntent = getOpenUploadIntent(pkg, apk, info)
+        val uploadingIntent = getOpenUploadIntent(notificationId, pkg, apk, info)
 
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_UPLOADED)
             .setContentTitle(label)
@@ -138,7 +137,7 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                 UploadStatus.COMPLETED -> {
                     notificationManager.cancel(notificationId)
                     notificationManager.cancel(UPLOAD_NOTIFICATION_ID)
-                    val uploadedIntent = state.result?.let { getOpenDetailsIntent(it.appId, label) }
+                    val uploadedIntent = state.result?.let { getOpenDetailsIntent(notificationId, it.appId, label) }
                     val uploadedNotificationBuilder =
                         NotificationCompat.Builder(context, CHANNEL_UPLOADED)
                             .setContentTitle(label)
@@ -206,10 +205,16 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
         notificationManager.createNotificationChannel(mChannel)
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
-    private fun getOpenDetailsIntent(appId: String, label: String): PendingIntent {
+    // Extras play no part in PendingIntent identity, so with a shared request
+    // code every upload resolved to the same one — and CANCEL_CURRENT then
+    // killed the intent behind the notification of whatever uploaded before.
+    private fun getOpenDetailsIntent(
+        requestCode: Int,
+        appId: String,
+        label: String,
+    ): PendingIntent {
         return PendingIntent.getActivity(
-            context, 0,
+            context, requestCode,
             createDetailsActivityIntent(
                 context = context,
                 appId = appId,
@@ -218,25 +223,25 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                 moderation = false,
                 finishOnly = false
             ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE
+            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         )
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private fun getOpenUploadIntent(
+        requestCode: Int,
         pkg: UploadPackage,
         apk: UploadApk,
         info: UploadInfo
     ): PendingIntent {
         return PendingIntent.getActivity(
-            context, 0,
+            context, requestCode,
             createUploadActivityIntent(
                 context = context,
                 pkg = pkg,
                 apk = apk,
                 info = info
             ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE
+            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         )
     }
 

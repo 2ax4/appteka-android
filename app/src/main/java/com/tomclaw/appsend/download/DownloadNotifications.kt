@@ -1,12 +1,11 @@
 package com.tomclaw.appsend.download
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
@@ -86,7 +85,7 @@ class DownloadNotificationsImpl(
     ) {
         val notificationId = appId.crc32()
 
-        val openDetailsIntent = getOpenDetailsIntent(appId, label)
+        val openDetailsIntent = getOpenDetailsIntent(notificationId, appId, label)
 
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_INSTALL)
             .setContentTitle(label)
@@ -138,7 +137,7 @@ class DownloadNotificationsImpl(
                     notificationManager.cancel(notificationId)
                     val uri = installUri()
                     if (uri != null) {
-                        val installIntent = getInstallIntent(uri)
+                        val installIntent = getInstallIntent(notificationId, uri)
                         val installNotificationBuilder =
                             NotificationCompat.Builder(context, CHANNEL_INSTALL)
                                 .setContentTitle(label)
@@ -192,10 +191,16 @@ class DownloadNotificationsImpl(
         })
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
-    private fun getOpenDetailsIntent(appId: String, label: String): PendingIntent {
+    // Extras play no part in PendingIntent identity, so with a shared request
+    // code every download resolved to the same one — and CANCEL_CURRENT then
+    // killed the intent behind the notification of whatever downloaded before.
+    private fun getOpenDetailsIntent(
+        requestCode: Int,
+        appId: String,
+        label: String,
+    ): PendingIntent {
         return PendingIntent.getActivity(
-            context, 0,
+            context, requestCode,
             createDetailsActivityIntent(
                 context = context,
                 appId = appId,
@@ -204,20 +209,19 @@ class DownloadNotificationsImpl(
                 moderation = false,
                 finishOnly = false
             ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE
+            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         )
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
-    private fun getInstallIntent(uri: Uri): PendingIntent {
+    private fun getInstallIntent(requestCode: Int, uri: Uri): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, APK_MIME_TYPE)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
         return PendingIntent.getActivity(
-            context, 0,
+            context, requestCode,
             intent,
-            FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE
+            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         )
     }
 
