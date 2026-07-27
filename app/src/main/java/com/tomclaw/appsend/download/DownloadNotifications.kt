@@ -168,6 +168,9 @@ class DownloadNotificationsImpl(
                 }
 
                 STARTED -> {
+                    // This download left the queue for the foreground notification,
+                    // so its own "waiting" one has nothing left to say
+                    notificationManager.cancel(notificationId)
                     val notification = notificationBuilder
                         .setContentText(context.getString(R.string.waiting_for_download))
                         .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -178,11 +181,12 @@ class DownloadNotificationsImpl(
                 }
 
                 else -> {
+                    // Progress belongs to the foreground notification alone; the
+                    // cancel that used to sit here fired on every single percent
                     val notification = notificationBuilder
                         .setContentText(context.getString(R.string.downloading_progress, status))
                         .setProgress(100, status, false)
                         .build()
-                    notificationManager.cancel(notificationId)
                     notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, notification)
                 }
             }

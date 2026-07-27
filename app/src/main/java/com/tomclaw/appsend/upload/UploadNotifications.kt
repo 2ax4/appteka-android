@@ -169,6 +169,9 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                 }
 
                 UploadStatus.STARTED -> {
+                    // This upload left the queue for the foreground notification,
+                    // so its own "waiting" one has nothing left to say
+                    notificationManager.cancel(notificationId)
                     val notification = notificationBuilder
                         .setContentText(context.getString(R.string.waiting_for_upload))
                         .setSmallIcon(android.R.drawable.stat_sys_upload)
@@ -179,6 +182,8 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                 }
 
                 else -> {
+                    // Progress belongs to the foreground notification alone; the
+                    // cancel that used to sit here fired on every single percent
                     val notification = notificationBuilder
                         .setContentText(
                             context.getString(
@@ -188,7 +193,6 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                         )
                         .setProgress(100, state.percent, false)
                         .build()
-                    notificationManager.cancel(notificationId)
                     notificationManager.notify(UPLOAD_NOTIFICATION_ID, notification)
                 }
             }
