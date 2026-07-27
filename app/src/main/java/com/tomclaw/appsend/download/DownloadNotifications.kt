@@ -104,12 +104,15 @@ class DownloadNotificationsImpl(
                 }
             }
 
+        // The holder keeps updating the same builder, so one load is enough —
+        // doing it per emission meant up to a hundred loads for one download
+        icon?.let { context.imageLoader().load(iconHolder, it, handlers) }
+
         // takeUntil completes the stream on a terminal status, so the subscription drops
         // itself even when the relay already cached that status before we subscribed
         observable.takeUntil { status ->
             status == ERROR || status == COMPLETED || status == IDLE
         }.subscribe({ status ->
-            icon?.run { context.imageLoader().load(iconHolder, icon, handlers) }
             when (status) {
                 AWAIT -> {
                     val notification = notificationBuilder

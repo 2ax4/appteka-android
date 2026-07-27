@@ -103,13 +103,17 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                 }
             }
 
+        val uri = createApkIconURI(apk.path)
+
+        // The holder keeps updating the same builder, so one load is enough —
+        // doing it per emission meant up to a hundred loads for one upload
+        context.imageLoader().load(iconHolder, uri, handlers)
+
         // takeUntil completes the stream on a terminal status, so the subscription drops
         // itself even when the relay already cached that status before we subscribed
         observable.takeUntil { state ->
             state.status in TERMINAL_UPLOAD_STATUSES
         }.subscribe { state ->
-            val uri = createApkIconURI(apk.path)
-            uri.run { context.imageLoader().load(iconHolder, uri, handlers) }
             when (state.status) {
                 UploadStatus.AWAIT -> {
                     val notification = notificationBuilder
