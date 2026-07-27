@@ -358,17 +358,19 @@ class DetailsPresenterImpl(
         val appId = details?.info?.appId ?: return
         observerSubscription.clear()
         observerSubscription += packageObserver.observe(packageName)
-            .map { installedVersionCode ->
-                this.installedVersionCode = installedVersionCode
+            // switchMap, not flatMap: every package event used to add another
+            // subscription to the same download relay without dropping the
+            // previous one, so the screen re-bound once per accumulated one
+            .switchMap { installedVersionCode ->
+                downloadManager.status(appId)
+                    .map { downloadState -> installedVersionCode to downloadState }
             }
-            .flatMap { downloadManager.status(appId) }
-            .map { downloadState ->
-                this.downloadState = downloadState
-            }
-            .observeOn(schedulers.mainThread())
             .subscribeOn(schedulers.io())
+            .observeOn(schedulers.mainThread())
             .subscribe(
-                {
+                { (installed, state) ->
+                    this.installedVersionCode = installed
+                    this.downloadState = state
                     tryInstall()
                     bindDetails()
                     view?.showContent()
