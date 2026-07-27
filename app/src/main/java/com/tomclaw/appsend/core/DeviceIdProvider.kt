@@ -10,6 +10,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.UUID
+import com.tomclaw.appsend.util.logDebug
 
 interface DeviceIdProvider {
 
@@ -48,7 +49,7 @@ class DeviceIdProviderImpl(
                 return input.readUTF()
             }
         } catch (ex: Throwable) {
-            println("[DeviceId] Error while loading storage: $ex")
+            logDebug("[DeviceId] Error while loading storage: $ex")
         }
         return null
     }

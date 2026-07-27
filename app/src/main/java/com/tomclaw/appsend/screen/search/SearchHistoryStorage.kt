@@ -3,6 +3,7 @@ package com.tomclaw.appsend.screen.search
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
+import com.tomclaw.appsend.util.logDebug
 
 /**
  * Where the search history is kept, and nothing else: what is worth
@@ -43,7 +44,7 @@ class SearchHistoryStorageImpl(
                 .orEmpty()
         } catch (ex: Throwable) {
             // A history nobody can read is a history nobody misses.
-            println("[SearchHistory] Error while loading storage: $ex")
+            logDebug("[SearchHistory] Error while loading storage: $ex")
             emptyList()
         }
     }
@@ -65,7 +66,7 @@ class SearchHistoryStorageImpl(
                 temp.renameTo(file)
             }
         } catch (ex: Throwable) {
-            println("[SearchHistory] Error while saving storage: $ex")
+            logDebug("[SearchHistory] Error while saving storage: $ex")
         }
     }
 

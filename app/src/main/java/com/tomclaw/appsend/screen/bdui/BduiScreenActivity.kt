@@ -35,6 +35,7 @@ import com.tomclaw.appsend.screen.unpublish.createUnpublishActivityIntent
 import com.tomclaw.appsend.screen.uploads.createUploadsActivityIntent
 import com.tomclaw.appsend.util.Analytics
 import com.tomclaw.appsend.util.SchedulersFactory
+import com.tomclaw.appsend.util.logDebug
 import javax.inject.Inject
 
 /**
@@ -145,14 +146,14 @@ class BduiScreenActivity : AppCompatActivity(), BduiScreenPresenter.BduiScreenRo
     override fun handleOpenUrl(url: String, external: Boolean) {
         val uri = Uri.parse(url)
         if (uri.scheme?.lowercase() !in BROWSABLE_SCHEMES) {
-            println("[bdui] Refused to open $url")
+            logDebug("[bdui] Refused to open $url")
             return
         }
         val intent = Intent(Intent.ACTION_VIEW, uri)
         try {
             startActivity(intent)
         } catch (ex: ActivityNotFoundException) {
-            println("[bdui] Nothing handles $url")
+            logDebug("[bdui] Nothing handles $url")
         }
     }
 

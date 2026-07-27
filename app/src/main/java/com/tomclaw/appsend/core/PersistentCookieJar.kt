@@ -8,6 +8,7 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import com.tomclaw.appsend.util.logDebug
 
 /**
  * Cookies are kept per name, domain and path — the same triple a server
@@ -76,7 +77,7 @@ class PersistentCookieJar(filesDir: File) : CookieJar {
                 }
             }
         } catch (ex: Throwable) {
-            println("[CookieJar] Error while loading storage: $ex")
+            logDebug("[CookieJar] Error while loading storage: $ex")
         }
     }
 
@@ -102,7 +103,7 @@ class PersistentCookieJar(filesDir: File) : CookieJar {
                 }
             }
         } catch (ex: Throwable) {
-            println("[CookieJar] Error while saving storage: $ex")
+            logDebug("[CookieJar] Error while saving storage: $ex")
         }
     }
 

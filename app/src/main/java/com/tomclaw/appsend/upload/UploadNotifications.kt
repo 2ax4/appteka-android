@@ -20,6 +20,7 @@ import com.tomclaw.appsend.util.crc32
 import com.tomclaw.appsend.util.createApkIconURI
 import com.tomclaw.appsend.util.getColor
 import com.tomclaw.appsend.util.getLabel
+import com.tomclaw.appsend.util.logDebug
 import com.tomclaw.appsend.util.openDetailsPendingIntent
 import com.tomclaw.imageloader.SimpleImageLoader.imageLoader
 import com.tomclaw.imageloader.core.Handlers
@@ -205,7 +206,7 @@ class UploadNotificationsImpl(
         }, { error ->
             // Without this the stream would tear down the subscriber and leave the
             // foreground service with nothing left to stop it
-            println("[upload notification] Error: $error")
+            logDebug("[upload notification] Error: $error")
             analytics.trackException(error, mapOf("reason" to "Upload status subscription error"))
             notificationManager.cancel(notificationId)
             notificationManager.cancel(UPLOAD_NOTIFICATION_ID)

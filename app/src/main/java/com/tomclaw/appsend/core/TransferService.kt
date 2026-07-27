@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import java.util.concurrent.CopyOnWriteArraySet
+import com.tomclaw.appsend.util.logDebug
 
 /**
  * The foreground-service half of a transfer: entering and leaving the
@@ -84,7 +85,7 @@ abstract class TransferService : Service() {
     override fun onTimeout(startId: Int, fgsType: Int) = onTimeoutReached()
 
     private fun onTimeoutReached() {
-        println("[$logTag] onTimeout")
+        logDebug("[$logTag] onTimeout")
         activeTransfers.clear()
         stopForegroundCompat()
         stopSelf()
@@ -112,14 +113,14 @@ abstract class TransferService : Service() {
     }
 
     override fun onDestroy() {
-        println("[$logTag] onDestroy")
+        logDebug("[$logTag] onDestroy")
         handler.removeCallbacksAndMessages(null)
         stopForegroundCompat()
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent): IBinder {
-        println("[$logTag] onBind")
+        logDebug("[$logTag] onBind")
         return Binder()
     }
 

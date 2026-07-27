@@ -7,6 +7,7 @@ import com.tomclaw.appsend.R
 import com.tomclaw.appsend.appComponent
 import com.tomclaw.appsend.core.TransferService
 import com.tomclaw.appsend.download.di.DownloadServiceModule
+import com.tomclaw.appsend.util.logDebug
 import javax.inject.Inject
 
 class DownloadService : TransferService() {
@@ -23,7 +24,7 @@ class DownloadService : TransferService() {
 
     override fun onCreate() {
         super.onCreate()
-        println("[download service] onCreate")
+        logDebug("[download service] onCreate")
         appComponent
             .downloadServiceComponent(DownloadServiceModule(this))
             .inject(service = this)
@@ -42,7 +43,7 @@ class DownloadService : TransferService() {
         val url = intent.getStringExtra(EXTRA_URL) ?: return false
         val sha1 = intent.getStringExtra(EXTRA_SHA1)
 
-        println("[download service] onStartCommand(label = $label, version = $version, appId = $appId, url = $url)")
+        logDebug("[download service] onStartCommand(label = $label, version = $version, appId = $appId, url = $url)")
 
         trackTransfer(appId)
 

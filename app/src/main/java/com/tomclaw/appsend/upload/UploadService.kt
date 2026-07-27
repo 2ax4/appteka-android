@@ -8,6 +8,7 @@ import com.tomclaw.appsend.appComponent
 import com.tomclaw.appsend.core.TransferService
 import com.tomclaw.appsend.upload.di.UploadServiceModule
 import com.tomclaw.appsend.util.getParcelableExtraCompat
+import com.tomclaw.appsend.util.logDebug
 import javax.inject.Inject
 
 class UploadService : TransferService() {
@@ -24,7 +25,7 @@ class UploadService : TransferService() {
 
     override fun onCreate() {
         super.onCreate()
-        println("[upload service] onCreate")
+        logDebug("[upload service] onCreate")
         appComponent
             .uploadServiceComponent(UploadServiceModule(this))
             .inject(service = this)
@@ -41,7 +42,7 @@ class UploadService : TransferService() {
         val info = intent.getParcelableExtraCompat(EXTRA_INFO, UploadInfo::class.java)
             ?: return false
 
-        println("[upload service] onStartCommand(pkg = $pkg, apk = $apk, info = $info)")
+        logDebug("[upload service] onStartCommand(pkg = $pkg, apk = $apk, info = $info)")
 
         val id = pkg.uniqueId
 

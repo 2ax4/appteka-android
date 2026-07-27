@@ -17,6 +17,7 @@ import com.tomclaw.appsend.util.MultipartStream.ProgressHandler
 import com.tomclaw.appsend.util.PackageHelper
 import com.tomclaw.appsend.util.decodeSampledBitmapFromStream
 import com.tomclaw.appsend.util.getLabel
+import com.tomclaw.appsend.util.logDebug
 import com.tomclaw.appsend.util.md5
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.CookieJar
@@ -78,14 +79,14 @@ class UploadManagerImpl(
         val relay = relayFor(id)
         return relay.doFinally {
             if (relay.hasObservers()) {
-                println("[upload] Relay $id has observers")
+                logDebug("[upload] Relay $id has observers")
                 return@doFinally
             }
             val inactiveState = relay.hasValue() &&
                     (relay.value?.status == UploadStatus.IDLE
                             || relay.value?.status == UploadStatus.COMPLETED
                             || relay.value?.status == UploadStatus.ERROR)
-            println("[upload] Relay $id is inactive: $inactiveState")
+            logDebug("[upload] Relay $id is inactive: $inactiveState")
             if (!relay.hasValue() || inactiveState) {
                 relays.remove(id)
                 // Keep the cached upload result on ERROR so the next retry can
@@ -94,7 +95,7 @@ class UploadManagerImpl(
                 if (relay.value?.status != UploadStatus.ERROR) {
                     results.remove(id)
                 }
-                println("[upload] Relay $id removed")
+                logDebug("[upload] Relay $id removed")
             }
         }
     }
@@ -189,7 +190,7 @@ class UploadManagerImpl(
                     )
                 }
             } catch (ex: Throwable) {
-                println("[upload] Unexpected failure while uploading\n$ex")
+                logDebug("[upload] Unexpected failure while uploading\n$ex")
                 relay.accept(UploadState(status = UploadStatus.ERROR))
             } finally {
                 // A network timeout lands in uploadBlocking's InterruptedIOException
@@ -273,17 +274,17 @@ class UploadManagerImpl(
 
                 else -> {
                     InputStreamReader(connection.errorStream).use { reader ->
-                        println(reader.readText())
+                        logDebug(reader.readText())
                     }
                     throw IOException("Error upload response code is $responseCode")
                 }
             }
         } catch (ex: InterruptedIOException) {
-            println("[upload] IO interruption while application uploading\n$ex")
+            logDebug("[upload] IO interruption while application uploading\n$ex")
         } catch (ex: InterruptedException) {
-            println("[upload] Interruption while application uploading\n$ex")
+            logDebug("[upload] Interruption while application uploading\n$ex")
         } catch (ex: Throwable) {
-            println("[upload] Exception while application uploading\n$ex")
+            logDebug("[upload] Exception while application uploading\n$ex")
         } finally {
             connection?.disconnect()
         }
@@ -394,19 +395,19 @@ class UploadManagerImpl(
 
                 else -> {
                     InputStreamReader(connection.errorStream).use { reader ->
-                        println(reader.readText())
+                        logDebug(reader.readText())
                     }
                     throw IOException("Error upload response code is $responseCode")
                 }
             }
         } catch (ex: InterruptedIOException) {
-            println("[upload] IO interruption while application uploading\n$ex")
+            logDebug("[upload] IO interruption while application uploading\n$ex")
             cancelCallback.invoke()
         } catch (ex: InterruptedException) {
-            println("[upload] Interruption while application uploading\n$ex")
+            logDebug("[upload] Interruption while application uploading\n$ex")
             cancelCallback.invoke()
         } catch (ex: Throwable) {
-            println("[upload] Exception while application uploading\n$ex")
+            logDebug("[upload] Exception while application uploading\n$ex")
             errorCallback.invoke(ex)
         } finally {
             connection?.disconnect()

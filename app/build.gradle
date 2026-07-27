@@ -65,6 +65,14 @@ android {
         abortOnError = false
     }
 
+    testOptions {
+        unitTests {
+            // Logging reaches android.util.Log even from classes that are plain
+            // JVM otherwise, and an unmocked stub would throw instead of no-op
+            returnDefaultValues = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

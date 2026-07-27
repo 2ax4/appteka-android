@@ -123,7 +123,7 @@ fun <T : Any> Observable<T>.retryWhenNonAuthErrors(
             if (ex is HttpException && ex.code() in 400..499) {
                 Single.create<T> { it.onError(ex) }.toObservable()
             } else {
-                println("Retry after exception: " + ex.message)
+                logDebug("Retry after exception: " + ex.message)
                 Observable.timer(delay, TimeUnit.SECONDS)
             }
         }

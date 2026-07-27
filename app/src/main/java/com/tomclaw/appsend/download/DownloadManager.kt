@@ -5,6 +5,7 @@ import com.jakewharton.rxrelay3.BehaviorRelay
 import com.tomclaw.appsend.core.ProxyConfigProvider
 import com.tomclaw.appsend.core.UserAgentProvider
 import com.tomclaw.appsend.util.FileHelper.escapeFileSymbols
+import com.tomclaw.appsend.util.logDebug
 import com.tomclaw.appsend.util.safeClose
 import com.tomclaw.appsend.util.sha1
 import io.reactivex.rxjava3.core.Observable
@@ -72,17 +73,17 @@ class DownloadManagerImpl(
     override fun status(appId: String): Observable<Int> {
         val relay = relayFor(appId)
         return relay.doFinally {
-            println("[download] Finally status relay")
+            logDebug("[download] Finally status relay")
             if (relay.hasObservers()) {
-                println("[download] Relay $appId has observers")
+                logDebug("[download] Relay $appId has observers")
                 return@doFinally
             }
             val inactiveState = relay.hasValue() &&
                     (relay.value == IDLE || relay.value == COMPLETED || relay.value == ERROR)
-            println("[download] Relay $appId is inactive: $inactiveState")
+            logDebug("[download] Relay $appId is inactive: $inactiveState")
             if (!relay.hasValue() || inactiveState) {
                 relays.remove(appId)
-                println("[download] Relay $appId removed")
+                logDebug("[download] Relay $appId removed")
             }
         }
     }
@@ -146,7 +147,7 @@ class DownloadManagerImpl(
             } catch (ex: Throwable) {
                 // Escaping here would leave the relay without a terminal state,
                 // and the foreground service would keep running until Android kills it
-                println("[download] Unexpected failure while downloading\n$ex")
+                logDebug("[download] Unexpected failure while downloading\n$ex")
                 relay.accept(ERROR)
             } finally {
                 downloads.remove(appId)
@@ -201,7 +202,7 @@ class DownloadManagerImpl(
             // an explicit cancel ever drops a tmp file, so without this the same
             // doomed range gets replayed on every retry, forever.
             if (connection.responseCode == SC_RANGE_NOT_SATISFIABLE && downloadedBytes > 0) {
-                println("[download] Partial file rejected with 416, starting over")
+                logDebug("[download] Partial file rejected with 416, starting over")
                 connection.disconnect()
                 apkStorage.deleteTmp(fileName)
                 downloadedBytes = 0L
@@ -290,13 +291,13 @@ class DownloadManagerImpl(
             progressCallback(100)
             return DownloadResult.SUCCESS
         } catch (ex: InterruptedIOException) {
-            println("[download] IO interruption - partial file saved for resume\n$ex")
+            logDebug("[download] IO interruption - partial file saved for resume\n$ex")
             return DownloadResult.INTERRUPTED
         } catch (ex: InterruptedException) {
-            println("[download] Interrupted - partial file saved for resume\n$ex")
+            logDebug("[download] Interrupted - partial file saved for resume\n$ex")
             return DownloadResult.INTERRUPTED
         } catch (ex: Throwable) {
-            println("[download] Exception while application downloading\n$ex")
+            logDebug("[download] Exception while application downloading\n$ex")
             errorCallback(ex)
             return DownloadResult.ERROR
         } finally {
@@ -380,7 +381,7 @@ class DownloadManagerImpl(
         // promised to arrive in a particular case
         val expected = sha1.lowercase()
         if (actual != expected) {
-            println("[download] Checksum mismatch: expected $expected, got $actual")
+            logDebug("[download] Checksum mismatch: expected $expected, got $actual")
             return false
         }
         return true

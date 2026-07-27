@@ -19,6 +19,7 @@ import com.tomclaw.appsend.util.GROUP_NOTIFICATIONS
 import com.tomclaw.appsend.util.NotificationIconHolder
 import com.tomclaw.appsend.util.crc32
 import com.tomclaw.appsend.util.getColor
+import com.tomclaw.appsend.util.logDebug
 import com.tomclaw.appsend.util.openDetailsPendingIntent
 import com.tomclaw.imageloader.SimpleImageLoader.imageLoader
 import com.tomclaw.imageloader.core.Handlers
@@ -191,7 +192,7 @@ class DownloadNotificationsImpl(
                 }
             }
         }, { error ->
-            println("[download notification] Error: $error")
+            logDebug("[download notification] Error: $error")
             analytics.trackException(error, mapOf("reason" to "Download status subscription error"))
             notificationManager.cancel(notificationId)
             stop()

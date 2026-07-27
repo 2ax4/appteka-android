@@ -36,7 +36,7 @@ class PackageObserverImpl(
 
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                println("[packages] Intent: " + intent.action + "/" + intent.dataString)
+                logDebug("[packages] Intent: " + intent.action + "/" + intent.dataString)
                 val packageName = intent.dataString?.replace("package:", "")
                 if (!packageName.isNullOrEmpty()) {
                     packages[packageName]?.let { relay ->
@@ -52,7 +52,7 @@ class PackageObserverImpl(
             @Suppress("DEPRECATION")
             context.registerReceiver(receiver, filter)
         }
-        println("[packages] Package observing started")
+        logDebug("[packages] Package observing started")
     }
 
     override fun observe(packageName: String): Observable<Int> {
@@ -64,12 +64,12 @@ class PackageObserverImpl(
         }
         return observable
             .doOnSubscribe {
-                println("[packages] Package $packageName observer subscribed")
+                logDebug("[packages] Package $packageName observer subscribed")
             }
             .doFinally {
-                println("[packages] Package $packageName observer disposed")
+                logDebug("[packages] Package $packageName observer disposed")
                 if (!observable.hasObservers()) {
-                    println("[packages] Package $packageName observer removed")
+                    logDebug("[packages] Package $packageName observer removed")
                     packages.remove(packageName)
                 }
             }
