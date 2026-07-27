@@ -238,6 +238,13 @@ class DownloadManagerImpl(
                     percent = p
                 }
             }
+            // A stream can end early without raising anything, and committing
+            // then would rename a truncated file to .apk — from that point the
+            // app skips the download and the installer fails to parse it
+            if (read < total) {
+                errorCallback(IOException("Incomplete download: $read of $total bytes"))
+                return DownloadResult.ERROR
+            }
             progressCallback(100)
             return DownloadResult.SUCCESS
         } catch (ex: InterruptedIOException) {
