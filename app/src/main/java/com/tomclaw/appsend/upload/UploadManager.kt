@@ -137,21 +137,34 @@ class UploadManagerImpl(
                 if (uploadResult != null) {
                     results[id] = uploadResult
 
-                    val scrIds = scrUploadUri
-                        .takeIf { it.isNotEmpty() }
-                        ?.let { uris ->
-                            uploadScreenshotsBlocking(uris, progressCallback = { percent ->
-                                relay.accept(
-                                    UploadState(
-                                        status = UploadStatus.PROGRESS,
-                                        totalPercent(apkCount, 100, scrUploadCount, percent)
-                                    )
+                    val uploadedScrIds = if (scrUploadUri.isEmpty()) {
+                        emptyList()
+                    } else {
+                        uploadScreenshotsBlocking(scrUploadUri, progressCallback = { percent ->
+                            relay.accept(
+                                UploadState(
+                                    status = UploadStatus.PROGRESS,
+                                    totalPercent(apkCount, 100, scrUploadCount, percent)
                                 )
-                            })
-                        }
-                        .orEmpty()
-                        .let { ids -> mergeEmptyStrings(info.screenshots.map { it.scrId }, ids) }
+                            )
+                        })
+                    }
 
+                    // Screenshots are part of what the user publishes, so going
+                    // on to setMeta would report the upload as done with them
+                    // silently gone. The apk result stays cached, so a retry
+                    // re-runs only this step.
+                    if (uploadedScrIds == null) {
+                        // A cancel has already parked the relay at IDLE — only a
+                        // genuine failure should surface as an error
+                        if (relay.value?.status !in TERMINAL_UPLOAD_STATUSES) {
+                            relay.accept(UploadState(status = UploadStatus.ERROR))
+                        }
+                        return@submit
+                    }
+
+                    val scrIds =
+                        mergeEmptyStrings(info.screenshots.map { it.scrId }, uploadedScrIds)
 
                     setMetaInfoBlocking(
                         appId = uploadResult.appId,
