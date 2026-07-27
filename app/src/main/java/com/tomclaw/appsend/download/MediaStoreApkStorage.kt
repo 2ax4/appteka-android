@@ -137,18 +137,17 @@ class MediaStoreApkStorage(
         }
     }
 
+    // Measured on the file itself rather than read from the SIZE column: the
+    // column is a database value that can lag behind bytes already on disk
+    // (a process killed mid-write), and openAppend writes at the real end of
+    // the file — resuming from a stale offset would splice the download.
     override fun getTmpSize(fileName: String): Long {
         val uri = findFileUri("$fileName.$APK_EXTENSION.$TMP_EXTENSION") ?: return 0L
 
-        val projection = arrayOf(MediaStore.Downloads.SIZE)
         return try {
-            contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads.SIZE))
-                } else {
-                    0L
-                }
-            } ?: 0L
+            contentResolver.openFileDescriptor(uri, "r")
+                ?.use { descriptor -> descriptor.statSize.coerceAtLeast(0L) }
+                ?: 0L
         } catch (ex: Throwable) {
             0L
         }
