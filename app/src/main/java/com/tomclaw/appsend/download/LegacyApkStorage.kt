@@ -95,6 +95,15 @@ class LegacyApkStorage(
         return if (tmpFile.exists()) tmpFile.length() else 0L
     }
 
+    override fun openReadTmp(fileName: String): InputStream? {
+        val tmpFile = getTmpFile(fileName)
+        return if (tmpFile.exists()) {
+            FileInputStream(tmpFile)
+        } else {
+            null
+        }
+    }
+
     override fun openAppend(fileName: String): OutputStream {
         val tmpFile = getTmpFile(fileName)
         tmpFile.parentFile?.mkdirs()

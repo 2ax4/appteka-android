@@ -113,7 +113,14 @@ interface DetailsPresenter : ItemListener {
 
         fun openGooglePlay(packageName: String)
 
-        fun startDownload(label: String, version: String, icon: String?, appId: String, url: String)
+        fun startDownload(
+            label: String,
+            version: String,
+            icon: String?,
+            appId: String,
+            url: String,
+            sha1: String?,
+        )
 
         fun openShare(title: String, text: String)
 
@@ -754,7 +761,8 @@ class DetailsPresenterImpl(
             version = details.info.version,
             appId = details.info.appId,
             icon = details.info.icon,
-            url = details.link
+            url = details.link,
+            sha1 = details.info.sha1,
         )
 
         if (tryInstall()) {

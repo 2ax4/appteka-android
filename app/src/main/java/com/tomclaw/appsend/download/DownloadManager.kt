@@ -5,6 +5,7 @@ import com.jakewharton.rxrelay3.BehaviorRelay
 import com.tomclaw.appsend.core.ProxyConfigProvider
 import com.tomclaw.appsend.core.UserAgentProvider
 import com.tomclaw.appsend.util.safeClose
+import com.tomclaw.appsend.util.sha1
 import io.reactivex.rxjava3.core.Observable
 import okhttp3.CookieJar
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -25,7 +26,13 @@ interface DownloadManager {
 
     fun status(appId: String): Observable<Int>
 
-    fun download(label: String, version: String, appId: String, url: String): String
+    fun download(
+        label: String,
+        version: String,
+        appId: String,
+        url: String,
+        sha1: String?,
+    ): String
 
     fun getInstallUri(label: String, version: String, appId: String): Uri?
 
@@ -73,7 +80,13 @@ class DownloadManagerImpl(
         }
     }
 
-    override fun download(label: String, version: String, appId: String, url: String): String {
+    override fun download(
+        label: String,
+        version: String,
+        appId: String,
+        url: String,
+        sha1: String?,
+    ): String {
         val fileName = fileName(label, version, appId)
         val relay = relays[appId] ?: BehaviorRelay.create()
 
@@ -98,6 +111,7 @@ class DownloadManagerImpl(
                 val result = downloadBlocking(
                     url = url,
                     fileName = fileName,
+                    sha1 = sha1,
                     progressCallback = { percent ->
                         relay.accept(percent)
                     },
@@ -163,6 +177,7 @@ class DownloadManagerImpl(
     private fun downloadBlocking(
         url: String,
         fileName: String,
+        sha1: String?,
         progressCallback: (Int) -> Unit,
         errorCallback: (Throwable) -> Unit
     ): DownloadResult {
@@ -258,6 +273,16 @@ class DownloadManagerImpl(
                 errorCallback(IOException("Incomplete download: $read of $total bytes"))
                 return DownloadResult.ERROR
             }
+            // Push the last buffer out before the file gets read back
+            output.safeClose()
+            output = null
+            // The length says nothing about a resume that started at a wrong
+            // offset, or about bytes mangled on the way
+            if (!matchesChecksum(fileName, sha1)) {
+                apkStorage.deleteTmp(fileName)
+                errorCallback(IOException("Checksum mismatch"))
+                return DownloadResult.ERROR
+            }
             progressCallback(100)
             return DownloadResult.SUCCESS
         } catch (ex: InterruptedIOException) {
@@ -334,6 +359,27 @@ class DownloadManagerImpl(
             currentUrl = httpUrl.resolve(location)?.toString()
                 ?: throw IOException("Invalid redirect location: $location")
         }
+    }
+
+    /**
+     * Entries the server has no checksum for are taken as they came — there is
+     * nothing to compare against, and failing them would block those downloads
+     * outright.
+     */
+    private fun matchesChecksum(fileName: String, sha1: String?): Boolean {
+        if (sha1.isNullOrBlank()) {
+            return true
+        }
+        // sha1() consumes and closes the stream
+        val actual = apkStorage.openReadTmp(fileName)?.sha1()?.lowercase() ?: return false
+        // Folded rather than compared case-insensitively: neither side is
+        // promised to arrive in a particular case
+        val expected = sha1.lowercase()
+        if (actual != expected) {
+            println("[download] Checksum mismatch: expected $expected, got $actual")
+            return false
+        }
+        return true
     }
 
     private fun escapeFileSymbols(name: String): String {

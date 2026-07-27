@@ -120,7 +120,14 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.DetailsRouter {
             // Delay is needed to let the system apply the permission before starting foreground service
             Handler(Looper.getMainLooper()).postDelayed({
                 pendingDownload?.let { params ->
-                    doStartDownload(params.label, params.version, params.icon, params.appId, params.url)
+                    doStartDownload(
+                        params.label,
+                        params.version,
+                        params.icon,
+                        params.appId,
+                        params.url,
+                        params.sha1,
+                    )
                 }
                 pendingDownload = null
             }, PERMISSION_APPLY_DELAY)
@@ -457,17 +464,18 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.DetailsRouter {
         version: String,
         icon: String?,
         appId: String,
-        url: String
+        url: String,
+        sha1: String?
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permission = Manifest.permission.POST_NOTIFICATIONS
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                pendingDownload = DownloadParams(label, version, icon, appId, url)
+                pendingDownload = DownloadParams(label, version, icon, appId, url, sha1)
                 notificationPermissionLauncher.launch(permission)
                 return
             }
         }
-        doStartDownload(label, version, icon, appId, url)
+        doStartDownload(label, version, icon, appId, url, sha1)
     }
 
     private fun doStartDownload(
@@ -475,9 +483,10 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.DetailsRouter {
         version: String,
         icon: String?,
         appId: String,
-        url: String
+        url: String,
+        sha1: String?
     ) {
-        val intent = createDownloadIntent(context = this, label, version, icon, appId, url)
+        val intent = createDownloadIntent(context = this, label, version, icon, appId, url, sha1)
         ContextCompat.startForegroundService(this, intent)
         analytics.trackEvent("details-download-app")
     }
@@ -487,7 +496,8 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.DetailsRouter {
         val version: String,
         val icon: String?,
         val appId: String,
-        val url: String
+        val url: String,
+        val sha1: String?
     )
 
     override fun openShare(title: String, text: String) {

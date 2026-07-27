@@ -153,6 +153,17 @@ class MediaStoreApkStorage(
         }
     }
 
+    override fun openReadTmp(fileName: String): InputStream? {
+        val uri = tmpUris[fileName]
+            ?: findFileUri("$fileName.$APK_EXTENSION.$TMP_EXTENSION")
+            ?: return null
+        return try {
+            contentResolver.openInputStream(uri)
+        } catch (ex: Throwable) {
+            null
+        }
+    }
+
     override fun openAppend(fileName: String): OutputStream {
         val uri = findFileUri("$fileName.$APK_EXTENSION.$TMP_EXTENSION")
 

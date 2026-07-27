@@ -83,6 +83,14 @@ interface ApkStorage {
     fun getTmpSize(fileName: String): Long
 
     /**
+     * Open input stream for reading the temporary file, so a download can be
+     * checked against its expected checksum before being committed.
+     * @param fileName target file name (without extension)
+     * @return input stream or null if temporary file doesn't exist
+     */
+    fun openReadTmp(fileName: String): InputStream?
+
+    /**
      * Open output stream for appending to existing temporary file (for resume download).
      * If temporary file doesn't exist, creates a new one.
      * @param fileName target file name (without extension)

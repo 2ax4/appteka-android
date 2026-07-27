@@ -66,6 +66,7 @@ class DownloadService : Service() {
         val icon = intent.getStringExtra(EXTRA_ICON)
         val appId = intent.getStringExtra(EXTRA_APP_ID) ?: return false
         val url = intent.getStringExtra(EXTRA_URL) ?: return false
+        val sha1 = intent.getStringExtra(EXTRA_SHA1)
 
         println("[download service] onStartCommand(label = $label, version = $version, appId = $appId, url = $url)")
 
@@ -73,7 +74,7 @@ class DownloadService : Service() {
 
         val relay = downloadManager.status(appId)
 
-        downloadManager.download(label, version, appId, url)
+        downloadManager.download(label, version, appId, url, sha1)
 
         notifications.subscribe(
             appId = appId,
@@ -156,16 +157,19 @@ fun createDownloadIntent(
     version: String,
     icon: String?,
     appId: String,
-    url: String
+    url: String,
+    sha1: String?,
 ): Intent = Intent(context, DownloadService::class.java)
     .putExtra(EXTRA_LABEL, label)
     .putExtra(EXTRA_VERSION, version)
     .putExtra(EXTRA_ICON, icon)
     .putExtra(EXTRA_APP_ID, appId)
     .putExtra(EXTRA_URL, url)
+    .putExtra(EXTRA_SHA1, sha1)
 
 private const val EXTRA_LABEL = "label"
 private const val EXTRA_VERSION = "version"
 private const val EXTRA_ICON = "icon"
 private const val EXTRA_APP_ID = "app_id"
 private const val EXTRA_URL = "url"
+private const val EXTRA_SHA1 = "sha1"
