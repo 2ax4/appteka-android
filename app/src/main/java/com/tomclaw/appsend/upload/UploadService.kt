@@ -9,6 +9,8 @@ import com.tomclaw.appsend.core.TransferService
 import com.tomclaw.appsend.upload.di.UploadServiceModule
 import com.tomclaw.appsend.util.getParcelableExtraCompat
 import com.tomclaw.appsend.util.logDebug
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.kotlin.plusAssign
 import javax.inject.Inject
 
 class UploadService : TransferService() {
@@ -22,6 +24,8 @@ class UploadService : TransferService() {
     override val logTag = "upload service"
 
     override val notificationId = UPLOAD_NOTIFICATION_ID
+
+    private val subscriptions = CompositeDisposable()
 
     override fun onCreate() {
         super.onCreate()
@@ -73,14 +77,21 @@ class UploadService : TransferService() {
                 observable = relay,
             )
         } else {
-            // take(1) disposes itself, so a state already cached in the relay can't
-            // leave a live subscription behind the way a captured Disposable would
-            relay.filter { it.status in TERMINAL_UPLOAD_STATUSES }
+            // take(1) drops this as soon as the upload settles, and it settles on
+            // its own — the composite is only there for a service torn down before
+            // that happens, which would otherwise keep the subscription and this
+            // service alive through the manager's relay
+            subscriptions += relay.filter { it.status in TERMINAL_UPLOAD_STATUSES }
                 .take(1)
                 .subscribe { handler.post { onTransferFinished(id) } }
         }
 
         return true
+    }
+
+    override fun onDestroy() {
+        subscriptions.clear()
+        super.onDestroy()
     }
 
 }
