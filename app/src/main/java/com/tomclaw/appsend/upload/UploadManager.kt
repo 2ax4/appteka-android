@@ -63,14 +63,19 @@ class UploadManagerImpl(
     private val uploads = ConcurrentHashMap<String, Future<*>>()
     private val results = ConcurrentHashMap<String, UploadResponse>()
 
+    /**
+     * Resolved through putIfAbsent so a status subscriber and a starting upload
+     * racing on the same id cannot end up holding two different relays — the
+     * loser of that race would never see the upload it is watching.
+     */
+    private fun relayFor(id: String): BehaviorRelay<UploadState> {
+        relays[id]?.let { return it }
+        val created = BehaviorRelay.createDefault(UploadState(status = UploadStatus.IDLE))
+        return relays.putIfAbsent(id, created) ?: created
+    }
+
     override fun status(id: String): Observable<UploadState> {
-        val relay = relays[id] ?: let {
-            println("[upload] New status relay for $id")
-            val relay = BehaviorRelay.createDefault(UploadState(status = UploadStatus.IDLE))
-            relay.accept(UploadState(status = UploadStatus.IDLE))
-            relays[id] = relay
-            relay
-        }
+        val relay = relayFor(id)
         return relay.doFinally {
             if (relay.hasObservers()) {
                 println("[upload] Relay $id has observers")
@@ -95,7 +100,7 @@ class UploadManagerImpl(
     }
 
     override fun upload(id: String, pkg: UploadPackage, apk: UploadApk?, info: UploadInfo) {
-        val relay = relays[id] ?: BehaviorRelay.create()
+        val relay = relayFor(id)
         if (info.checkExist.file != null && !results.containsKey(id)) {
             val file = info.checkExist.file
             results[id] = UploadResponse(
@@ -197,8 +202,6 @@ class UploadManagerImpl(
                 uploads.remove(id)
             }
         }
-        relays[id] = relay
-        return
     }
 
     override fun cancel(id: String) {

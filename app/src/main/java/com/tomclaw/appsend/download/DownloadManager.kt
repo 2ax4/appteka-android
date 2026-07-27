@@ -58,13 +58,19 @@ class DownloadManagerImpl(
     private val downloads = ConcurrentHashMap<String, Future<*>>()
     private val fileNames = ConcurrentHashMap<String, String>()
 
+    /**
+     * Resolved through putIfAbsent so a status subscriber and a starting download
+     * racing on the same appId cannot end up holding two different relays — the
+     * loser of that race would never see the download it is watching.
+     */
+    private fun relayFor(appId: String): BehaviorRelay<Int> {
+        relays[appId]?.let { return it }
+        val created = BehaviorRelay.createDefault(IDLE)
+        return relays.putIfAbsent(appId, created) ?: created
+    }
+
     override fun status(appId: String): Observable<Int> {
-        val relay = relays[appId] ?: let {
-            val relay = BehaviorRelay.createDefault(IDLE)
-            relay.accept(IDLE)
-            relays[appId] = relay
-            relay
-        }
+        val relay = relayFor(appId)
         return relay.doFinally {
             println("[download] Finally status relay")
             if (relay.hasObservers()) {
@@ -89,18 +95,16 @@ class DownloadManagerImpl(
         sha1: String?,
     ): String {
         val fileName = fileName(label, version, appId)
-        val relay = relays[appId] ?: BehaviorRelay.create()
+        val relay = relayFor(appId)
 
         if (apkStorage.exists(fileName)) {
             relay.accept(COMPLETED)
-            relays[appId] = relay
             return fileName
         }
 
         // Check if download is already in progress
         val existingDownload = downloads[appId]
         if (existingDownload != null && !existingDownload.isDone) {
-            relays[appId] = relay
             return fileName
         }
 
@@ -148,7 +152,6 @@ class DownloadManagerImpl(
                 downloads.remove(appId)
             }
         }
-        relays[appId] = relay
         return fileName
     }
 
