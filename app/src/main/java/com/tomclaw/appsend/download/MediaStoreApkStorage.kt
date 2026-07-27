@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * APK storage implementation for Android 10 (API 29) and above.
@@ -32,8 +33,11 @@ class MediaStoreApkStorage(
      * - Used in commit() and getInstallUri()
      * - Cleared in delete(), deleteTmp(), clearAll()
      * - Lost on app restart (intentionally - MediaStore will be indexed by then)
+     *
+     * Written from the download executor and read from the main thread, so it
+     * has to be concurrent the same way DownloadManager's own maps are.
      */
-    private val sessionUris = mutableMapOf<String, Uri>()
+    private val sessionUris = ConcurrentHashMap<String, Uri>()
 
     override fun openWrite(fileName: String): OutputStream {
         deleteTmp(fileName)
