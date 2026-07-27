@@ -165,6 +165,9 @@ class DetailsPresenterImpl(
 
     private var aiReview: AIReview? = null
 
+    private var installRetryDisposable: Disposable? = null
+    private var installRetryAttempts: Int = 0
+
     private val items = ArrayList<Item>()
 
     private val subscriptions = CompositeDisposable()
@@ -454,13 +457,40 @@ class DetailsPresenterImpl(
                 appId = details.info.appId
             )
             if (uri != null) {
+                stopInstallRetry()
                 router?.installApp(uri)
                 needInstall = false
                 removeBeforeInstall = false
                 return true
             }
+            // COMPLETED is the last thing the relay ever emits, so nothing will
+            // call us again — a file the storage cannot hand over yet (MediaStore
+            // needs a moment after the commit) would leave the install to be
+            // started by hand on a second tap.
+            scheduleInstallRetry()
         }
         return false
+    }
+
+    private fun scheduleInstallRetry() {
+        if (installRetryDisposable?.isDisposed == false) {
+            return
+        }
+        if (installRetryAttempts >= INSTALL_RETRY_ATTEMPTS) {
+            return
+        }
+        installRetryAttempts++
+        val disposable = Observable.timer(INSTALL_RETRY_DELAY_MS, TimeUnit.MILLISECONDS)
+            .observeOn(schedulers.mainThread())
+            .subscribe({ tryInstall() }, {})
+        installRetryDisposable = disposable
+        subscriptions += disposable
+    }
+
+    private fun stopInstallRetry() {
+        installRetryDisposable?.dispose()
+        installRetryDisposable = null
+        installRetryAttempts = 0
     }
 
     /**
@@ -755,6 +785,8 @@ class DetailsPresenterImpl(
     private fun onInstall() {
         val details = details ?: return
         needInstall = true
+        // A fresh tap gets a fresh budget of retries
+        stopInstallRetry()
 
         router?.startDownload(
             label = details.info.label.orEmpty(),
@@ -1018,6 +1050,9 @@ class DetailsPresenterImpl(
 private const val AI_STATUS_PENDING = "pending"
 private const val AI_POLL_INTERVAL_MS = 3000L
 private const val AI_POLL_TIMEOUT_MS = 60_000L
+
+private const val INSTALL_RETRY_ATTEMPTS = 5
+private const val INSTALL_RETRY_DELAY_MS = 200L
 
 private const val KEY_DETAILS = "details"
 private const val KEY_INSTALLED_VERSION = "versionCode"
