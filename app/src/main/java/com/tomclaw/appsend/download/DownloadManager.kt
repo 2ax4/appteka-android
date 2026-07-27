@@ -173,9 +173,22 @@ class DownloadManagerImpl(
             val proxy: Proxy? = proxyConfigProvider.getProxyConfig().toProxy()
 
             // Check for existing partial file for resume
-            val downloadedBytes = apkStorage.getTmpSize(fileName)
+            var downloadedBytes = apkStorage.getTmpSize(fileName)
 
             connection = openConnection(url, downloadedBytes, proxy)
+
+            // The partial file is no longer something to resume from: it already
+            // covers the whole resource, or the resource changed under it. Only
+            // an explicit cancel ever drops a tmp file, so without this the same
+            // doomed range gets replayed on every retry, forever.
+            if (connection.responseCode == SC_RANGE_NOT_SATISFIABLE && downloadedBytes > 0) {
+                println("[download] Partial file rejected with 416, starting over")
+                connection.disconnect()
+                apkStorage.deleteTmp(fileName)
+                downloadedBytes = 0L
+                connection = openConnection(url, downloadedBytes, proxy)
+            }
+
             val responseCode = connection.responseCode
             
             // HTTP 206 = Partial Content (server supports resume)
@@ -336,6 +349,7 @@ class DownloadManagerImpl(
 const val GET = "GET"
 const val SC_BAD_REQUEST = 400
 const val SC_PARTIAL_CONTENT = 206
+const val SC_RANGE_NOT_SATISFIABLE = 416
 
 private val REDIRECT_CODES = setOf(301, 302, 303, 307, 308)
 private const val MAX_REDIRECTS = 5
