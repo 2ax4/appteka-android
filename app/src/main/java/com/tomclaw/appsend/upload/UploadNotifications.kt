@@ -11,15 +11,15 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.tomclaw.appsend.BuildConfig
 import com.tomclaw.appsend.R
-import com.tomclaw.appsend.screen.details.createDetailsActivityIntent
 import com.tomclaw.appsend.screen.upload.createUploadActivityIntent
+import com.tomclaw.appsend.util.GROUP_NOTIFICATIONS
 import com.tomclaw.appsend.util.NotificationIconHolder
 import com.tomclaw.appsend.util.crc32
 import com.tomclaw.appsend.util.createApkIconURI
 import com.tomclaw.appsend.util.getColor
 import com.tomclaw.appsend.util.getLabel
+import com.tomclaw.appsend.util.openDetailsPendingIntent
 import com.tomclaw.imageloader.SimpleImageLoader.imageLoader
 import com.tomclaw.imageloader.core.Handlers
 import io.reactivex.rxjava3.core.Observable
@@ -141,7 +141,9 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
                 UploadStatus.COMPLETED -> {
                     notificationManager.cancel(notificationId)
                     notificationManager.cancel(UPLOAD_NOTIFICATION_ID)
-                    val uploadedIntent = state.result?.let { getOpenDetailsIntent(notificationId, it.appId, label) }
+                    val uploadedIntent = state.result?.let {
+                        context.openDetailsPendingIntent(notificationId, it.appId, label)
+                    }
                     val uploadedNotificationBuilder =
                         NotificationCompat.Builder(context, CHANNEL_UPLOADED)
                             .setContentTitle(label)
@@ -213,28 +215,6 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
         notificationManager.createNotificationChannel(mChannel)
     }
 
-    // Extras play no part in PendingIntent identity, so with a shared request
-    // code every upload resolved to the same one — and CANCEL_CURRENT then
-    // killed the intent behind the notification of whatever uploaded before.
-    private fun getOpenDetailsIntent(
-        requestCode: Int,
-        appId: String,
-        label: String,
-    ): PendingIntent {
-        return PendingIntent.getActivity(
-            context, requestCode,
-            createDetailsActivityIntent(
-                context = context,
-                appId = appId,
-                packageName = null,
-                label = label,
-                moderation = false,
-                finishOnly = false
-            ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
-        )
-    }
-
     private fun getOpenUploadIntent(
         requestCode: Int,
         pkg: UploadPackage,
@@ -256,6 +236,5 @@ class UploadNotificationsImpl(private val context: Context) : UploadNotification
 }
 
 const val UPLOAD_NOTIFICATION_ID = 2
-const val GROUP_NOTIFICATIONS = BuildConfig.APPLICATION_ID + ".NOTIFICATIONS"
 const val CHANNEL_UPLOADING = "uploading_channel_id"
 const val CHANNEL_UPLOADED = "uploaded_channel_id"

@@ -13,13 +13,13 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.tomclaw.appsend.BuildConfig
 import com.tomclaw.appsend.R
-import com.tomclaw.appsend.screen.details.createDetailsActivityIntent
-import com.tomclaw.appsend.util.NotificationIconHolder
 import com.tomclaw.appsend.util.Analytics
+import com.tomclaw.appsend.util.GROUP_NOTIFICATIONS
+import com.tomclaw.appsend.util.NotificationIconHolder
 import com.tomclaw.appsend.util.crc32
 import com.tomclaw.appsend.util.getColor
+import com.tomclaw.appsend.util.openDetailsPendingIntent
 import com.tomclaw.imageloader.SimpleImageLoader.imageLoader
 import com.tomclaw.imageloader.core.Handlers
 import io.reactivex.rxjava3.core.Observable
@@ -85,7 +85,7 @@ class DownloadNotificationsImpl(
     ) {
         val notificationId = appId.crc32()
 
-        val openDetailsIntent = getOpenDetailsIntent(notificationId, appId, label)
+        val openDetailsIntent = context.openDetailsPendingIntent(notificationId, appId, label)
 
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_INSTALL)
             .setContentTitle(label)
@@ -198,28 +198,6 @@ class DownloadNotificationsImpl(
         })
     }
 
-    // Extras play no part in PendingIntent identity, so with a shared request
-    // code every download resolved to the same one — and CANCEL_CURRENT then
-    // killed the intent behind the notification of whatever downloaded before.
-    private fun getOpenDetailsIntent(
-        requestCode: Int,
-        appId: String,
-        label: String,
-    ): PendingIntent {
-        return PendingIntent.getActivity(
-            context, requestCode,
-            createDetailsActivityIntent(
-                context = context,
-                appId = appId,
-                packageName = null,
-                label = label,
-                moderation = false,
-                finishOnly = false
-            ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
-        )
-    }
-
     private fun getInstallIntent(requestCode: Int, uri: Uri): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, APK_MIME_TYPE)
@@ -249,7 +227,6 @@ class DownloadNotificationsImpl(
 }
 
 const val DOWNLOAD_NOTIFICATION_ID = 1
-const val GROUP_NOTIFICATIONS = BuildConfig.APPLICATION_ID + ".NOTIFICATIONS"
 const val CHANNEL_DOWNLOADING = "downloading_channel_id"
 const val CHANNEL_INSTALL = "install_channel_id"
 
