@@ -7,6 +7,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.DataOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class PersistentCookieJarTest {
 
@@ -14,6 +17,7 @@ class PersistentCookieJarTest {
     val folder = TemporaryFolder()
 
     private val storeUrl = "https://appteka.store/api/1/app/list".toHttpUrl()
+    private val uploadUrl = "https://appteka.store/api/1/app/upload".toHttpUrl()
     private val otherHostUrl = "https://tomclaw.com/api/appteka/standby".toHttpUrl()
     private val cdnUrl = "https://cdn.example.com/files/app.apk".toHttpUrl()
 
@@ -73,7 +77,7 @@ class PersistentCookieJarTest {
     }
 
     @Test
-    fun `expired cookies are dropped`() {
+    fun `a cookie that arrives expired is dropped`() {
         val jar = PersistentCookieJar(folder.newFolder())
         jar.saveFromResponse(
             storeUrl,
@@ -83,7 +87,52 @@ class PersistentCookieJarTest {
         assertEquals(listOf("session"), jar.loadForRequest(storeUrl).map { it.name })
     }
 
-    private fun sessionCookie(value: String = "secret") = cookie(name = "session", value = value)
+    @Test
+    fun `the server expiring a cookie removes it for good`() {
+        val dir = folder.newFolder()
+        val jar = PersistentCookieJar(dir)
+        jar.saveFromResponse(storeUrl, listOf(sessionCookie()))
+
+        // what a logout sends back
+        jar.saveFromResponse(storeUrl, listOf(Cookie.parse(storeUrl, "session=; Path=/; Max-Age=0")!!))
+
+        assertTrue(jar.loadForRequest(storeUrl).isEmpty())
+        assertTrue(PersistentCookieJar(dir).loadForRequest(storeUrl).isEmpty())
+    }
+
+    // The session slides on the server with every request while the cookie keeps
+    // the expiry stamped at login, so a date that has run out is not the client's
+    // call to act on — nor is a device clock that runs fast.
+    @Test
+    fun `a stored cookie past its expiry is still sent`() {
+        val dir = folder.newFolder()
+        writeJar(dir, sessionCookie(expiresAt = System.currentTimeMillis() - 24 * 60 * 60 * 1000L))
+
+        val jar = PersistentCookieJar(dir)
+
+        assertEquals(listOf("session"), jar.loadForRequest(storeUrl).map { it.name })
+        assertEquals(listOf("session"), jar.loadForRequest(uploadUrl).map { it.name })
+    }
+
+    /** Writes [cookies] in the jar's own on-disk format. */
+    private fun writeJar(dir: File, vararg cookies: Cookie) {
+        DataOutputStream(FileOutputStream(File(dir, "cookies.dat"))).use { output ->
+            output.writeShort(cookies.size)
+            cookies.forEach { cookie ->
+                output.writeUTF(cookie.name)
+                output.writeUTF(cookie.value)
+                output.writeLong(cookie.expiresAt)
+                output.writeUTF(cookie.domain)
+                output.writeUTF(cookie.path)
+                output.writeBoolean(cookie.secure)
+                output.writeBoolean(cookie.httpOnly)
+                output.writeBoolean(cookie.hostOnly)
+            }
+        }
+    }
+
+    private fun sessionCookie(value: String = "secret", expiresAt: Long = FAR_FUTURE) =
+        cookie(name = "session", value = value, expiresAt = expiresAt)
 
     private fun cookie(
         name: String,

@@ -25,17 +25,28 @@ class PersistentCookieJar(filesDir: File) : CookieJar {
     @Synchronized
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         ensureLoaded()
-        cookies.forEach { cookie -> cache[cookie.key()] = cookie }
-        dropExpired()
+        val now = System.currentTimeMillis()
+        cookies.forEach { cookie ->
+            // A Set-Cookie that is already expired is how the server drops one,
+            // and that is the only expiry we act on — see loadForRequest
+            if (cookie.expiresAt <= now) {
+                cache.remove(cookie.key())
+            } else {
+                cache[cookie.key()] = cookie
+            }
+        }
         persist()
     }
 
     @Synchronized
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         ensureLoaded()
-        dropExpired()
         // matches() is where domain, path, secure and host-only live, so the
-        // session cookie can't ride along to a download host or another API
+        // session cookie can't ride along to a download host or another API.
+        // Expiry is deliberately left to the server: the session slides with
+        // every request while the cookie keeps the date stamped at login, so
+        // evicting on it here logs an active user out for good — as would a
+        // device clock that runs fast.
         return cache.values.filter { it.matches(url) }
     }
 
@@ -79,11 +90,6 @@ class PersistentCookieJar(filesDir: File) : CookieJar {
         } catch (ex: Throwable) {
             logDebug("[CookieJar] Error while loading storage: $ex")
         }
-    }
-
-    private fun dropExpired() {
-        val now = System.currentTimeMillis()
-        cache.values.removeAll { it.expiresAt <= now }
     }
 
     private fun persist() {
